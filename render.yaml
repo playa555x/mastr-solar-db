@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: mastr-solar-db
+    runtime: bun
+    repo: https://github.com/playa555x/mastr-solar-db
+    branch: main
+    buildCommand: bun install
+    startCommand: bun server.ts
+    envVars:
+      - key: PORT
+        value: 8080

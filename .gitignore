@@ -1,0 +1,17 @@
+node_modules/
+.DS_Store
+*.log
+.env
+screenshots/
+bun.lockb
+nul
+*.txt
+debug-*.ts
+test-*.ts
+deep-debug.ts
+fix-*.ts
+import-and-scrape.ts
+mastr-scraper-agent.ts
+check-progress.ts
+scraper.log
+SCRAPING-FIX-SUMMARY.md
