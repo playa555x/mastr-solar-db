@@ -641,6 +641,9 @@ function isPublic(pathname: string): boolean {
   if (pathname === "/interesse" || pathname === "/partner" || pathname === "/check" || pathname === "/impressum" || pathname === "/datenschutz") return true;
   if (pathname.startsWith("/static/") || pathname.startsWith("/favicon")) return true;
   if (pathname.startsWith("/api/i18n/")) return true;
+  // Session-Check muss public sein — sonst 401-Spam in der Browser-Console beim Page-Load.
+  // Der Endpoint liefert ohne Cookie {authenticated:false}, mit Cookie {authenticated:true,...user}.
+  if (pathname === "/api/auth/me") return true;
   for (const p of PUBLIC_PREFIXES) if (pathname.startsWith(p)) return true;
   return false;
 }
@@ -899,10 +902,12 @@ async function handleRequest(req: Request): Promise<Response> {
       }
 
       if (path === "/api/auth/me" && method === "GET") {
+        // Session-Check liefert IMMER 200 — kein 401-Spam in der Browser-Console.
+        // Body unterscheidet authentifiziert vs. nicht.
         const u = getUser(req);
-        if (!u) return err("Nicht autorisiert", 401);
+        if (!u) return json({ authenticated: false });
         const extra = db.prepare("SELECT onboarding_done FROM users WHERE id = ?").get(u.id) as any;
-        return json({ ...u, onboarding_done: extra?.onboarding_done === 1 });
+        return json({ authenticated: true, ...u, onboarding_done: extra?.onboarding_done === 1 });
       }
       if (path === "/api/onboarding/complete" && method === "POST") {
         const auth = requireUser(req); if ("response" in auth) return auth.response;

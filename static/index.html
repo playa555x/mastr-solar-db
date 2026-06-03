@@ -5285,8 +5285,9 @@ function app() {
       } catch {}
       try {
         const r = await fetch('/api/auth/me');
-        if (r.ok) {
-          this.currentUser = await r.json();
+        const data = r.ok ? await r.json() : null;
+        if (data && data.authenticated) {
+          this.currentUser = data;
           this.isAuthenticated = true;
           // Viewer hat eingeschraenkte Datensicht aber volle Settings-Rechte
           if (this.currentUser.is_viewer) {
