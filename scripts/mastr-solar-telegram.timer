@@ -1,0 +1,11 @@
+[Unit]
+Description=MaStR Solar Telegram-Bot Polling Timer (every 30s)
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=30s
+RandomizedDelaySec=5
+AccuracySec=5
+
+[Install]
+WantedBy=timers.target

@@ -2474,6 +2474,21 @@ async function handleRequest(req: Request): Promise<Response> {
           return err(`Test fehlgeschlagen: ${e.message || String(e)}`, 500);
         }
       }
+      // BOT-Variante: testet @BotFather-Bot-Token via Bot-API
+      if (path === "/api/settings/telegram-bot/test" && method === "POST") {
+        const auth = requireUser(req); if ("response" in auth) return auth.response;
+        const { testBot } = await import("./lib/telegram-commands");
+        const r = await testBot(db, auth.user.id);
+        if (!r.ok) return err(r.error || "Test fehlgeschlagen", 400, r.bot ? { bot: r.bot } : {});
+        return json({ success: true, bot: r.bot });
+      }
+      // BOT-Variante: manueller Poll-Trigger (für Admin-Debugging — sollte normalerweise systemd-Timer erledigen)
+      if (path === "/api/settings/telegram-bot/poll-now" && method === "POST") {
+        const auth = requireAdmin(req); if ("response" in auth) return auth.response;
+        const { pollAllConfiguredUsers } = await import("./lib/telegram-commands");
+        const r = await pollAllConfiguredUsers(db);
+        return json({ success: true, ...r });
+      }
 
       // ===== TRACKING (public, kein Auth) =====
       const openMatch = path.match(/^\/t\/o\/([a-f0-9]{32})\.png$/i);

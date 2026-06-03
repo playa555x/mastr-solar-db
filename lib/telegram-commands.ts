@@ -142,19 +142,35 @@ interface AuthorizedUser {
 }
 
 export async function pollAndHandleUserUpdates(db: Database, u: AuthorizedUser): Promise<{ processed: number; lastUpdateId: number }> {
-  if (!u.telegram_bot_token_enc || !u.telegram_chat_id) return { processed: 0, lastUpdateId: u.telegram_last_update_id || 0 };
+  // Token zwingend erforderlich. chat_id kann beim ersten /start automatisch gelernt werden.
+  if (!u.telegram_bot_token_enc) return { processed: 0, lastUpdateId: u.telegram_last_update_id || 0 };
   const token = decrypt(u.telegram_bot_token_enc);
   const offset = u.telegram_last_update_id || 0;
   const updates = await tgGetUpdates(token, offset);
   let maxId = offset;
   let processed = 0;
+  let learnedChatId: string | null = u.telegram_chat_id ? String(u.telegram_chat_id) : null;
   for (const upd of updates) {
     if (upd.update_id > maxId) maxId = upd.update_id;
     const msg = upd.message;
     if (!msg || !msg.text) continue;
-    // Nur Nachrichten aus der konfigurierten chat_id akzeptieren (Whitelist-Trust)
-    if (String(msg.chat.id) !== String(u.telegram_chat_id)) {
-      await tgSend(token, msg.chat.id, "⛔ Dieser Chat ist nicht autorisiert.");
+    const incomingChatId = String(msg.chat.id);
+    // Erstkontakt: noch keine chat_id gespeichert → /start lernt sie
+    if (!learnedChatId) {
+      if (msg.text.trim() === "/start" || msg.text.trim() === "/help") {
+        learnedChatId = incomingChatId;
+        db.prepare("UPDATE users SET telegram_chat_id = ? WHERE id = ?").run(learnedChatId, u.id);
+        await tgSend(token, incomingChatId, `✅ Chat verbunden mit Account *${u.username}*.\n\n${HELP_TEXT}`);
+        processed++;
+        continue;
+      } else {
+        await tgSend(token, incomingChatId, "⛔ Erster Kontakt: bitte `/start` senden, um diesen Chat zu verbinden.");
+        continue;
+      }
+    }
+    // Whitelist: nur die gespeicherte chat_id darf Commands ausführen
+    if (incomingChatId !== learnedChatId) {
+      await tgSend(token, incomingChatId, "⛔ Dieser Chat ist nicht autorisiert.");
       continue;
     }
     if (u.active !== 1) {
@@ -196,11 +212,14 @@ export async function pollAndHandleUserUpdates(db: Database, u: AuthorizedUser):
 }
 
 export async function pollAllConfiguredUsers(db: Database): Promise<{ users_scanned: number; commands_processed: number }> {
+  // Token zwingend, chat_id optional (wird beim ersten /start gesetzt).
   const users = db.prepare(`
     SELECT id, username, is_admin, is_viewer, active,
-      telegram_chat_id, telegram_bot_token_enc, COALESCE(telegram_last_update_id, 0) as telegram_last_update_id
+      COALESCE(telegram_chat_id, '') as telegram_chat_id,
+      telegram_bot_token_enc,
+      COALESCE(telegram_last_update_id, 0) as telegram_last_update_id
     FROM users
-    WHERE active = 1 AND telegram_chat_id IS NOT NULL AND telegram_bot_token_enc IS NOT NULL
+    WHERE active = 1 AND telegram_bot_token_enc IS NOT NULL AND telegram_bot_token_enc != ''
   `).all() as AuthorizedUser[];
   let commandsProcessed = 0;
   for (const u of users) {
@@ -212,4 +231,29 @@ export async function pollAllConfiguredUsers(db: Database): Promise<{ users_scan
     }
   }
   return { users_scanned: users.length, commands_processed: commandsProcessed };
+}
+
+/**
+ * Bot-API Test — sendet eine Test-Nachricht an die konfigurierte chat_id.
+ * Liefert getMe-Result (Bot-Name) bei Erfolg.
+ */
+export async function testBot(db: Database, userId: number): Promise<{ ok: boolean; bot?: any; error?: string }> {
+  const u = db.prepare(`
+    SELECT telegram_bot_token_enc, telegram_chat_id, display_name, username
+    FROM users WHERE id = ?
+  `).get(userId) as any;
+  if (!u?.telegram_bot_token_enc) return { ok: false, error: "Bot-Token nicht gesetzt. Settings → Telegram → Bot-Token eintragen." };
+  const token = decrypt(u.telegram_bot_token_enc);
+  try {
+    const meR = await fetch(`${TG_API}/bot${token}/getMe`);
+    const me = (await meR.json()) as any;
+    if (!me.ok) return { ok: false, error: `getMe: ${me.description || "Token ungültig"}` };
+    if (!u.telegram_chat_id) {
+      return { ok: false, bot: me.result, error: "Bot OK, aber kein Chat verbunden. Sende `/start` an @" + me.result.username };
+    }
+    await tgSend(token, u.telegram_chat_id, `✅ *Test*\nBot \`@${me.result.username}\` erreicht Chat von *${u.display_name || u.username}*.`);
+    return { ok: true, bot: me.result };
+  } catch (e: any) {
+    return { ok: false, error: e?.message || String(e) };
+  }
 }

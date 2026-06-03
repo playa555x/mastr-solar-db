@@ -1,0 +1,14 @@
+[Unit]
+Description=MaStR Solar Telegram-Bot Command-Polling
+After=network.target mastr-solar.service
+
+[Service]
+Type=oneshot
+User=ubuntu
+WorkingDirectory=/opt/mastr-solar/app
+Environment=DB_PATH=/opt/mastr-solar/data/mastr-solar.db
+Environment=DATA_DIR=/opt/mastr-solar/data
+ExecStart=/home/ubuntu/.bun/bin/bun cron/telegram-listen.ts
+StandardOutput=journal
+StandardError=journal
+TimeoutStartSec=60
