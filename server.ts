@@ -1849,6 +1849,96 @@ async function handleRequest(req: Request): Promise<Response> {
       }
 
       // ===== ATTACHMENTS =====
+      // ===== ANLAGEN-BILDER (Foto-Dokumentation) =====
+      const anlImgsListMatch = path.match(/^\/api\/anlagen\/(\d+)\/images$/);
+      if (anlImgsListMatch && method === "GET") {
+        const auth = requireUser(req); if ("response" in auth) return auth.response;
+        const anlageId = parseInt(anlImgsListMatch[1]);
+        const exists = db.prepare("SELECT id FROM anlagen WHERE id = ?").get(anlageId);
+        if (!exists) return err("Anlage nicht gefunden", 404, { code: "NOT_FOUND" });
+        const rows = db.prepare(`
+          SELECT i.*, u.display_name as uploaded_by_name
+          FROM anlage_images i
+          LEFT JOIN users u ON u.id = i.uploaded_by
+          WHERE i.anlage_id = ?
+          ORDER BY i.uploaded_at DESC
+        `).all(anlageId) as any[];
+        const { toAnlageImageView } = await import("./lib/anlage-images");
+        return json(rows.map(toAnlageImageView));
+      }
+      if (anlImgsListMatch && method === "POST") {
+        const auth = requireUser(req); if ("response" in auth) return auth.response;
+        if (auth.user.is_viewer === 1) return err("Viewer-Account darf nicht hochladen", 403);
+        const anlageId = parseInt(anlImgsListMatch[1]);
+        const exists = db.prepare("SELECT id FROM anlagen WHERE id = ?").get(anlageId);
+        if (!exists) return err("Anlage nicht gefunden", 404, { code: "NOT_FOUND" });
+        const cl = parseInt(req.headers.get("content-length") || "0");
+        const { ALLOWED_IMAGE_MIME, MAX_IMAGE_BYTES, toAnlageImageView } = await import("./lib/anlage-images");
+        if (cl > MAX_IMAGE_BYTES + 1024 * 1024) return err("Bild zu gross (max 10 MB)", 413);
+        const fd = await req.formData();
+        const f = fd.get("file") as File | null;
+        const caption = String(fd.get("caption") || "").trim().substring(0, 200) || null;
+        if (!f) return err("Keine Datei");
+        if (f.size > MAX_IMAGE_BYTES) return err("Bild zu gross (max 10 MB)", 413);
+        if (!ALLOWED_IMAGE_MIME.has(f.type)) return err(`Nur Bilder (JPG/PNG/WebP/GIF) — abgewiesen: ${f.type}`, 415);
+        const ext = extname(f.name).toLowerCase().substring(0, 10) || ".bin";
+        const dir = join(UPLOADS_DIR, "anlage-images", String(anlageId));
+        if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
+        const uuid = randomBytes(16).toString("hex");
+        const storedPath = join(dir, uuid + ext);
+        await Bun.write(storedPath, f);
+        const res = db.prepare(`
+          INSERT INTO anlage_images (anlage_id, stored_path, original_name, mime_type, size_bytes, caption, uploaded_by)
+          VALUES (?, ?, ?, ?, ?, ?, ?)
+        `).run(anlageId, storedPath, f.name, f.type, f.size, caption, auth.user.id);
+        logActivity(db, "anlage", anlageId, "image_uploaded", auth.user.id, auth.user.username, `image=${f.name}`);
+        const row = db.prepare(`
+          SELECT i.*, u.display_name as uploaded_by_name
+          FROM anlage_images i LEFT JOIN users u ON u.id = i.uploaded_by
+          WHERE i.id = ?
+        `).get(Number(res.lastInsertRowid));
+        return json({ success: true, image: toAnlageImageView(row) });
+      }
+      const anlImgOneMatch = path.match(/^\/api\/anlagen\/(\d+)\/images\/(\d+)$/);
+      if (anlImgOneMatch && method === "GET") {
+        const auth = requireUser(req); if ("response" in auth) return auth.response;
+        const anlageId = parseInt(anlImgOneMatch[1]);
+        const imgId = parseInt(anlImgOneMatch[2]);
+        const r = db.prepare("SELECT * FROM anlage_images WHERE id = ? AND anlage_id = ?").get(imgId, anlageId) as any;
+        if (!r) return err("Nicht gefunden", 404, { code: "NOT_FOUND" });
+        return new Response(file(r.stored_path), {
+          headers: {
+            "Content-Type": r.mime_type || "application/octet-stream",
+            "Cache-Control": "private, max-age=3600",
+          },
+        });
+      }
+      if (anlImgOneMatch && method === "PATCH") {
+        const auth = requireUser(req); if ("response" in auth) return auth.response;
+        if (auth.user.is_viewer === 1) return err("Viewer-Account darf nicht ändern", 403);
+        const anlageId = parseInt(anlImgOneMatch[1]);
+        const imgId = parseInt(anlImgOneMatch[2]);
+        const r = db.prepare("SELECT * FROM anlage_images WHERE id = ? AND anlage_id = ?").get(imgId, anlageId) as any;
+        if (!r) return err("Nicht gefunden", 404, { code: "NOT_FOUND" });
+        const b = (await req.json()) as any;
+        const caption = String(b.caption || "").trim().substring(0, 200) || null;
+        db.prepare("UPDATE anlage_images SET caption = ? WHERE id = ?").run(caption, imgId);
+        return json({ success: true, caption });
+      }
+      if (anlImgOneMatch && method === "DELETE") {
+        const auth = requireUser(req); if ("response" in auth) return auth.response;
+        if (auth.user.is_viewer === 1) return err("Viewer-Account darf nicht löschen", 403);
+        const anlageId = parseInt(anlImgOneMatch[1]);
+        const imgId = parseInt(anlImgOneMatch[2]);
+        const r = db.prepare("SELECT * FROM anlage_images WHERE id = ? AND anlage_id = ?").get(imgId, anlageId) as any;
+        if (!r) return err("Nicht gefunden", 404, { code: "NOT_FOUND" });
+        if (r.uploaded_by !== auth.user.id && !auth.user.is_admin) return err("Nur Uploader oder Admin darf löschen", 403);
+        try { unlinkSync(r.stored_path); } catch {}
+        db.prepare("DELETE FROM anlage_images WHERE id = ?").run(imgId);
+        logActivity(db, "anlage", anlageId, "image_deleted", auth.user.id, auth.user.username, `image_id=${imgId}`);
+        return json({ success: true });
+      }
+
       if (path === "/api/attachments" && method === "GET") {
         const auth = requireUser(req); if ("response" in auth) return auth.response;
         const rows = db.prepare(`

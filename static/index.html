@@ -2951,7 +2951,7 @@
                   <div x-show="!notifSettings.telegram_chat_id && tgBotInfo" class="surface-light rounded-md p-3 text-xs text-ink-300">
                     <strong x-text="$t('settings.telegram_bot.start_step1')">1.</strong>
                     <span x-text="$t('settings.telegram_bot.start_help_1')">In Telegram diesen Bot öffnen:</span>
-                    <a :href="'https://t.me/' + tgBotInfo.username" target="_blank" class="text-brand-400 hover:underline font-mono" x-text="'@' + tgBotInfo.username"></a>
+                    <a :href="'https://t.me/' + (tgBotInfo?.username || '')" target="_blank" class="text-brand-400 hover:underline font-mono" x-text="'@' + (tgBotInfo?.username || '')"></a>
                     <br>
                     <strong x-text="$t('settings.telegram_bot.start_step2')">2.</strong>
                     <span x-text="$t('settings.telegram_bot.start_help_2')">/start senden — Chat verbindet sich automatisch innerhalb von ~30s.</span>
@@ -3516,6 +3516,57 @@
             </div>
           </div>
           <div class="text-[10px] text-ink-600 italic mt-2" x-text="selectedAnlage?.economics?.storage?.note"></div>
+        </div>
+
+        <!-- Bilder / Foto-Dokumentation -->
+        <div class="card rounded-xl p-4">
+          <div class="flex items-center justify-between gap-2 mb-3">
+            <h3 class="text-xs font-bold text-ink-200 uppercase tracking-wider flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+              <span x-text="$t('detail.section.images')">Bilder</span>
+              <span class="text-ink-500 font-normal" x-show="anlageImages.length > 0" x-text="'(' + anlageImages.length + ')'"></span>
+            </h3>
+            <label class="btn-primary text-xs font-medium px-3 py-1.5 rounded-md cursor-pointer" :class="anlageImagesUploading ? 'opacity-60 pointer-events-none' : ''">
+              <span x-text="anlageImagesUploading ? '…' : ('+ ' + $t('detail.images.upload'))">+ Bild hochladen</span>
+              <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple class="hidden"
+                @change="uploadAnlageImages($event.target.files); $event.target.value = ''">
+            </label>
+          </div>
+          <p class="text-[11px] text-ink-500 mb-3" x-text="$t('detail.images.hint')">Drag-Drop möglich · max. 10 MB · JPG/PNG/WebP/GIF</p>
+
+          <div @dragover.prevent="anlageImagesDragOver = true" @dragleave="anlageImagesDragOver = false"
+               @drop.prevent="anlageImagesDragOver = false; uploadAnlageImages($event.dataTransfer.files)"
+               :class="anlageImagesDragOver ? 'border-cyan-400 bg-cyan-400/5' : 'border-white/10'"
+               class="border-2 border-dashed rounded-lg transition-colors p-3">
+            <div x-show="anlageImages.length === 0 && !anlageImagesUploading" class="text-center text-sm text-ink-500 py-6">
+              <span x-text="$t('detail.images.empty')">Noch keine Bilder · zum Hochladen Datei ablegen oder oben klicken</span>
+            </div>
+            <div x-show="anlageImagesUploading" class="text-center text-xs text-ink-300 py-3">
+              <span x-text="$t('detail.images.uploading')">Lade hoch…</span>
+            </div>
+            <div x-show="anlageImages.length > 0" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+              <template x-for="img in anlageImages" :key="img.id">
+                <div class="group relative surface-light rounded-md overflow-hidden">
+                  <div class="aspect-square bg-white/[0.02] cursor-pointer flex items-center justify-center" @click="anlageImageLightbox = img">
+                    <img :src="img.url" :alt="img.caption || img.original_name" loading="lazy"
+                         class="w-full h-full object-cover">
+                  </div>
+                  <div class="p-2 space-y-1">
+                    <input type="text" :value="img.caption || ''" :placeholder="$t('detail.images.caption_placeholder')"
+                           @change="saveAnlageImageCaption(img.id, $event.target.value)"
+                           class="input w-full px-1.5 py-1 rounded text-[11px]" maxlength="200">
+                    <div class="flex items-center justify-between text-[9px] text-ink-500">
+                      <span x-text="img.uploaded_by_name || ('#' + img.uploaded_by)" class="truncate"></span>
+                      <button @click="deleteAnlageImage(img.id)"
+                              x-show="img.uploaded_by === currentUser.id || currentUser.is_admin"
+                              class="text-rose-400 hover:text-rose-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                              :title="$t('btn.delete')">×</button>
+                    </div>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
         </div>
 
         <!-- Notizen + Team-Chat 2-Spalten -->
@@ -4760,6 +4811,27 @@
     </div>
   </div>
 
+  <!-- Lightbox für Anlage-Bilder (inside x-data="app()" scope) -->
+  <div x-cloak x-show="anlageImageLightbox" @click="anlageImageLightbox = null"
+       @keydown.escape.window="anlageImageLightbox = null"
+       class="fixed inset-0 z-[100] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4">
+    <button @click.stop="anlageImageLightbox = null"
+            class="absolute top-4 right-4 text-white/80 hover:text-white text-3xl leading-none w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20">×</button>
+    <div class="max-w-[95vw] max-h-[90vh] flex flex-col gap-2 items-center" @click.stop>
+      <img :src="anlageImageLightbox?.url" :alt="anlageImageLightbox?.caption || anlageImageLightbox?.original_name"
+           class="max-w-full max-h-[80vh] object-contain rounded-md shadow-2xl">
+      <div class="text-center text-white/90 text-sm space-y-1">
+        <div x-show="anlageImageLightbox?.caption" x-text="anlageImageLightbox?.caption" class="font-medium"></div>
+        <div class="text-white/60 text-xs">
+          <span x-text="anlageImageLightbox?.original_name"></span> ·
+          <span x-text="formatSize(anlageImageLightbox?.size_bytes)"></span> ·
+          <span x-text="anlageImageLightbox?.uploaded_by_name || ('#' + anlageImageLightbox?.uploaded_by)"></span> ·
+          <span x-text="formatDateTime(anlageImageLightbox?.uploaded_at)"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -5096,6 +5168,8 @@ function app() {
     tgBotTokenInput: '', tgBotLoading: false, tgBotInfo: null, tgBotError: '',
     // Globaler Bot Chat-Binding
     tgChatIdInput: '', tgBindLoading: false, tgBindError: '',
+    // Anlage-Bilder
+    anlageImages: [], anlageImagesUploading: false, anlageImagesDragOver: false, anlageImageLightbox: null,
 
     // Chat
     showChat: false, dmThreads: [], dmActive: null, dmMessages: [], newDmText: '', dmPollTimer: null,
@@ -5262,10 +5336,16 @@ function app() {
       } catch {}
       window.addEventListener('resize', () => this.positionTour());
       // Watcher: bei jedem Anlage-Wechsel mit Koords die Satelliten-Karte neu initialisieren
-      this.$watch('selectedAnlage', (a) => {
+      this.$watch('selectedAnlage', (a, prev) => {
         if (this.anlageMap) { try { this.anlageMap.remove(); } catch {} this.anlageMap = null; }
         if (a && a.breitengrad && a.laengengrad && this.showDetail && this.appSettings.show_satellite_map !== 0) {
           setTimeout(() => this.initAnlageMap(), 200);
+        }
+        // Bilder bei Anlagenwechsel nachladen (auch beim ersten Open).
+        if (a?.id !== prev?.id) {
+          this.anlageImages = [];
+          this.anlageImageLightbox = null;
+          if (a?.id) this.loadAnlageImages(a.id);
         }
       });
       this.$watch('showDetail', (open) => {
@@ -5640,7 +5720,7 @@ function app() {
       el.classList.add('section-highlight');
       setTimeout(() => el.classList.remove('section-highlight'), 1500);
     },
-    setTab(t) {
+    async setTab(t) {
       this.tab = t;
       if (t === 'kalender') setTimeout(() => this.initCalendar(), 50);
       if (t === 'kanban') {
@@ -8321,6 +8401,51 @@ function app() {
         }
       } catch (e) { this.tgBotError = this.t('error.network'); }
       finally { this.tgBotLoading = false; }
+    },
+    async loadAnlageImages(anlageId) {
+      if (!anlageId) { this.anlageImages = []; return; }
+      try {
+        const r = await fetch('/api/anlagen/' + anlageId + '/images');
+        this.anlageImages = r.ok ? await r.json() : [];
+      } catch (e) { this.anlageImages = []; }
+    },
+    async uploadAnlageImages(fileList) {
+      if (!this.selectedAnlage?.id) return;
+      const files = Array.from(fileList || []).filter(f => f.type.startsWith('image/'));
+      if (files.length === 0) return;
+      this.anlageImagesUploading = true;
+      try {
+        for (const f of files) {
+          if (f.size > 10 * 1024 * 1024) { this.toast(f.name + ': > 10 MB', 'error'); continue; }
+          const fd = new FormData();
+          fd.append('file', f);
+          const r = await fetch('/api/anlagen/' + this.selectedAnlage.id + '/images', { method: 'POST', body: fd });
+          const d = await r.json().catch(() => ({}));
+          if (!r.ok) { this.toast(f.name + ': ' + (d.error || 'Upload-Fehler'), 'error'); continue; }
+          this.anlageImages.unshift(d.image);
+        }
+      } finally { this.anlageImagesUploading = false; }
+    },
+    async saveAnlageImageCaption(imgId, caption) {
+      if (!this.selectedAnlage?.id) return;
+      try {
+        await fetch('/api/anlagen/' + this.selectedAnlage.id + '/images/' + imgId, {
+          method: 'PATCH', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({ caption }),
+        });
+        const img = this.anlageImages.find(x => x.id === imgId);
+        if (img) img.caption = caption.trim().substring(0, 200) || null;
+      } catch (e) { this.toast(this.t('error.network'), 'error'); }
+    },
+    async deleteAnlageImage(imgId) {
+      if (!this.selectedAnlage?.id) return;
+      if (!confirm(this.t('detail.images.delete_confirm'))) return;
+      try {
+        const r = await fetch('/api/anlagen/' + this.selectedAnlage.id + '/images/' + imgId, { method: 'DELETE' });
+        if (!r.ok) { const d = await r.json().catch(()=>({})); this.toast(d.error || this.t('error.generic'), 'error'); return; }
+        this.anlageImages = this.anlageImages.filter(x => x.id !== imgId);
+        if (this.anlageImageLightbox?.id === imgId) this.anlageImageLightbox = null;
+      } catch (e) { this.toast(this.t('error.network'), 'error'); }
     },
     async bindTgChat() {
       const id = (this.tgChatIdInput || '').trim();

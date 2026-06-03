@@ -15,6 +15,7 @@ import { ensurePasswordResetTable } from "./password-reset";
 import { ensureIdempotencyTtlColumn } from "./idempotency";
 import { ensureIpWhitelistColumn, ensureSandboxColumn } from "./integration-auth";
 import { ensureTelegramOffsetColumn, ensureAdminNotifyColumn } from "./telegram-commands";
+import { ensureAnlageImagesTable } from "./anlage-images";
 import { ensureSignatureColumns } from "./signatures";
 import { ensureTranslationsTable } from "./translator";
 
@@ -80,6 +81,11 @@ export const MIGRATIONS: Migration[] = [
     id: "2026-06-03_telegram_admin_notify",
     name: "users.telegram_admin_notify (Admin-Bot-Notification Opt-Out)",
     up: (db) => ensureAdminNotifyColumn(db),
+  },
+  {
+    id: "2026-06-03_anlage_images",
+    name: "anlage_images (Foto-Dokumentation pro Anlage)",
+    up: (db) => ensureAnlageImagesTable(db),
   },
 ];
 
