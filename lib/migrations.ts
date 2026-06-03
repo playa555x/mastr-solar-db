@@ -14,7 +14,7 @@ import { ensureWebhookTables } from "./webhooks";
 import { ensurePasswordResetTable } from "./password-reset";
 import { ensureIdempotencyTtlColumn } from "./idempotency";
 import { ensureIpWhitelistColumn, ensureSandboxColumn } from "./integration-auth";
-import { ensureTelegramOffsetColumn } from "./telegram-commands";
+import { ensureTelegramOffsetColumn, ensureAdminNotifyColumn } from "./telegram-commands";
 import { ensureSignatureColumns } from "./signatures";
 import { ensureTranslationsTable } from "./translator";
 
@@ -75,6 +75,11 @@ export const MIGRATIONS: Migration[] = [
     id: "2026-06-03_telegram_offset",
     name: "users.telegram_last_update_id (Bot-Command-Cursor)",
     up: (db) => ensureTelegramOffsetColumn(db),
+  },
+  {
+    id: "2026-06-03_telegram_admin_notify",
+    name: "users.telegram_admin_notify (Admin-Bot-Notification Opt-Out)",
+    up: (db) => ensureAdminNotifyColumn(db),
   },
 ];
 

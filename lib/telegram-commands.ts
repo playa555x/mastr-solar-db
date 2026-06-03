@@ -327,6 +327,79 @@ export async function pollGlobalBot(db: Database): Promise<number> {
 }
 
 /**
+ * Notify ALL admins (mit gebundenen chat_id) via globalem Bot.
+ * Fire-and-forget; Fehler werden geloggt aber nicht propagiert.
+ *
+ * Pro Admin gibt es die Spalte users.telegram_admin_notify (Default 1).
+ * Wenn 0, wird übersprungen.
+ */
+export async function notifyAdminsViaBot(db: Database, event: string, summary: string): Promise<{ sent: number }> {
+  try {
+    const tokenRow = db.prepare("SELECT value FROM app_settings WHERE key = 'telegram_global_bot_token_enc'").get() as any;
+    if (!tokenRow?.value) return { sent: 0 };
+    const token = decrypt(tokenRow.value);
+    const admins = db.prepare(`
+      SELECT id, username, telegram_chat_id, COALESCE(telegram_admin_notify, 1) as enabled
+      FROM users
+      WHERE active = 1 AND is_admin = 1
+        AND telegram_chat_id IS NOT NULL AND telegram_chat_id != ''
+    `).all() as any[];
+    let sent = 0;
+    for (const a of admins) {
+      if (a.enabled !== 1) continue;
+      await tgSend(token, a.telegram_chat_id, `*${event}*\n${summary}`);
+      sent++;
+    }
+    return { sent };
+  } catch (e) {
+    console.error("[tg-cmd] notifyAdmins failed:", e);
+    return { sent: 0 };
+  }
+}
+
+/**
+ * Migration für users.telegram_admin_notify (Default 1).
+ */
+export function ensureAdminNotifyColumn(db: Database): void {
+  try {
+    const cols = db.prepare("PRAGMA table_info(users)").all() as any[];
+    if (!cols.some(c => c.name === "telegram_admin_notify")) {
+      db.run("ALTER TABLE users ADD COLUMN telegram_admin_notify INTEGER DEFAULT 1");
+    }
+  } catch (e) { console.error("[tg-cmd] ALTER users telegram_admin_notify failed:", e); }
+}
+
+/**
+ * Erzeugt einen kurzen menschenlesbaren Summary-Text für ein Webhook-Event.
+ * Falls Event unbekannt: JSON-Stringify der Daten (max 300 Zeichen).
+ */
+export function formatEventSummary(event: string, data: any): string {
+  try {
+    switch (event) {
+      case "lead.created":
+        return `📩 Neuer Lead *${data.ticket || data.lead_id}* — ${data.name || "?"}${data.firma ? ` (${data.firma})` : ""}\n${data.email || ""}${data.telefon ? " · " + data.telefon : ""}${data.plz || data.ort ? `\n📍 ${data.plz || ""} ${data.ort || ""}`.trim() : ""}${data.anlagen_leistung_kwp ? `\n☀️ ${data.anlagen_leistung_kwp} kWp` : ""}${data.matched_anlage_id ? `\n🔗 Anlage #${data.matched_anlage_id}` : ""}`;
+      case "anfrage.received":
+        return `📩 Check-Anfrage *${data.ticket || data.lead_id}* — ${data.name || "?"}${data.interest ? ` · ${data.interest}` : ""}\n${data.email || ""}${data.telefon ? " · " + data.telefon : ""}${data.matched_anlage_id ? `\n🔗 Anlage #${data.matched_anlage_id}` : ""}`;
+      case "anlage.status_changed":
+        return `🔁 Anlage *${data.mastr_nummer || "#" + data.anlage_id}*: \`${data.old_status || "neu"}\` → *${data.new_status}*\nvon ${data.changed_by?.username || "?"}`;
+      case "anlage.owner_changed":
+        return `👤 Anlage *#${data.anlage_id}*: Owner → ${data.new_owner_name || (data.new_owner_id ? "#" + data.new_owner_id : "—")}\nvon ${data.changed_by?.username || "?"}`;
+      case "mention.created":
+        return `📣 @${data.from?.username || "?"} markierte *@${data.to?.username || "?"}* in Anlage ${data.anlage_label || "?"}\n${(data.text || "").substring(0, 200)}`;
+      case "termin.created":
+        return `📅 Termin *${data.title}* am ${data.start?.slice(0, 16)?.replace("T", " ") || "?"}${data.location ? `\n📍 ${data.location}` : ""}${data.anlage_id ? `\n🔗 Anlage #${data.anlage_id}` : ""}\nvon ${data.created_by?.username || "?"}`;
+      case "reminder.due":
+        return `⏰ Reminder fällig — Kunde *${data.betreiber_name || data.betreiber_mastr}*\n${data.note || ""}\nfür User #${data.owner_user_id}`;
+      default:
+        const s = JSON.stringify(data);
+        return s.length > 300 ? s.substring(0, 300) + "…" : s;
+    }
+  } catch {
+    return event + " (Daten nicht lesbar)";
+  }
+}
+
+/**
  * Bot-API Test — sendet eine Test-Nachricht an die konfigurierte chat_id.
  * Liefert getMe-Result (Bot-Name) bei Erfolg.
  */

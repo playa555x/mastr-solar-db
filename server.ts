@@ -2385,6 +2385,7 @@ async function handleRequest(req: Request): Promise<Response> {
           SELECT notif_email_mention, notif_email_dm, notif_email_assignment,
             notif_telegram_mention, notif_telegram_dm, notif_telegram_assignment,
             telegram_chat_id, telegram_phone, telegram_user_id,
+            COALESCE(telegram_admin_notify, 1) as telegram_admin_notify,
             CASE WHEN telegram_bot_token_enc IS NOT NULL AND telegram_bot_token_enc != '' THEN 1 ELSE 0 END as has_telegram_token,
             CASE WHEN telegram_session_enc IS NOT NULL AND telegram_session_enc != '' THEN 1 ELSE 0 END as has_telegram_session
           FROM users WHERE id = ?
@@ -2399,7 +2400,7 @@ async function handleRequest(req: Request): Promise<Response> {
         for (const k of [
           "notif_email_mention", "notif_email_dm", "notif_email_assignment",
           "notif_telegram_mention", "notif_telegram_dm", "notif_telegram_assignment",
-          "telegram_chat_id",
+          "telegram_chat_id", "telegram_admin_notify",
         ]) {
           if (b[k] !== undefined) { fields.push(`${k} = ?`); vals.push(b[k]); }
         }

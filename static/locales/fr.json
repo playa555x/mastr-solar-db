@@ -1465,6 +1465,8 @@
   "settings.telegram_bot.token_invalid": "Format de jeton invalide (attendu : chiffres:lettres).",
   "settings.telegram_bot.token_label": "Jeton du bot (BotFather)",
   "settings.telegram_bot.token_placeholder": "1234567890:ABC-DEF…",
+  "settings.telegram_global.admin_notify_hint": "Prospects, changements de statut/propriétaire, rendez-vous, mentions, rappels.",
+  "settings.telegram_global.admin_notify_label": "Push admin : toutes les modifications",
   "settings.telegram_global.bind": "Associer",
   "settings.telegram_global.bind_success": "Chat associé. Envoyez `/help` au bot.",
   "settings.telegram_global.chat_id_invalid": "Le chat-id doit être numérique (minus pour les groupes).",

@@ -1465,6 +1465,8 @@
   "settings.telegram_bot.token_invalid": "Token-Format ungültig (erwartet: Zahlen:Buchstaben).",
   "settings.telegram_bot.token_label": "Bot-Token aus BotFather",
   "settings.telegram_bot.token_placeholder": "1234567890:ABC-DEF…",
+  "settings.telegram_global.admin_notify_hint": "Leads, Status-Wechsel, Owner-Wechsel, Termine, Mentions, fällige Reminder.",
+  "settings.telegram_global.admin_notify_label": "Admin-Push: alle Änderungen",
   "settings.telegram_global.bind": "Verknüpfen",
   "settings.telegram_global.bind_success": "Chat verknüpft. Sende `/help` an den Bot.",
   "settings.telegram_global.chat_id_invalid": "Chat-ID muss numerisch sein (ggf. mit Minus für Gruppen).",

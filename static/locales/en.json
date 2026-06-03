@@ -1465,6 +1465,8 @@
   "settings.telegram_bot.token_invalid": "Invalid token format (expected: digits:letters).",
   "settings.telegram_bot.token_label": "Bot token from BotFather",
   "settings.telegram_bot.token_placeholder": "1234567890:ABC-DEF…",
+  "settings.telegram_global.admin_notify_hint": "Leads, status changes, owner changes, appointments, mentions, due reminders.",
+  "settings.telegram_global.admin_notify_label": "Admin push: all changes",
   "settings.telegram_global.bind": "Bind",
   "settings.telegram_global.bind_success": "Chat bound. Send `/help` to the bot.",
   "settings.telegram_global.chat_id_invalid": "Chat-id must be numeric (use minus for groups).",

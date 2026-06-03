@@ -154,6 +154,7 @@ export function listDeliveries(db: Database, webhookId?: number, limit = 50): an
 // Per-event delivery. Skips disabled webhooks und nicht-subscribierte.
 // Asynchron, blockt den Caller nicht.
 export function fireEvent(db: Database, event: WebhookEvent, data: any): void {
+  // 1) Webhook-Subscriber (externe Systeme)
   const targets = db.prepare("SELECT * FROM webhooks WHERE enabled = 1").all() as Webhook[];
   for (const w of targets) {
     let evs: string[] = [];
@@ -171,6 +172,15 @@ export function fireEvent(db: Database, event: WebhookEvent, data: any): void {
     `).run(w.id, event, payload);
     void deliverWithRetry(db, w, event, payload, Number(insert.lastInsertRowid), 0);
   }
+  // 2) Admin-Telegram-Benachrichtigung über globalen Bot (fire-and-forget).
+  //    Dynamic-Import vermeidet Zyklen lib/webhooks <-> lib/telegram-commands.
+  void (async () => {
+    try {
+      const { notifyAdminsViaBot, formatEventSummary } = await import("./telegram-commands");
+      const summary = formatEventSummary(event, data);
+      await notifyAdminsViaBot(db, event, summary);
+    } catch (e) { console.error("[webhooks] admin-bot notify failed:", e); }
+  })();
 }
 
 async function deliverWithRetry(db: Database, w: Webhook, event: string, payload: string, deliveryId: number, attempt: number): Promise<void> {

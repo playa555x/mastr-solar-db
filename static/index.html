@@ -2863,15 +2863,27 @@
                 <h4 class="text-[10px] font-bold text-ink-300 uppercase tracking-wider mb-2" x-text="$t('settings.telegram_global.title')">Solar-Bot verbinden</h4>
                 <p class="text-xs text-ink-400 mb-3" x-text="$t('settings.telegram_global.subtitle')">Den geteilten Telegram-Bot mit deinem Account verknüpfen — Schreib-Commands aus Telegram heraus.</p>
 
-                <div x-show="notifSettings.telegram_chat_id" class="surface-light rounded-md p-3 flex items-center justify-between gap-3 flex-wrap">
-                  <div>
-                    <div class="text-sm text-emerald-300 font-semibold flex items-center gap-2">
-                      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                      <span x-text="$t('settings.telegram_global.connected')">Verbunden</span>
+                <div x-show="notifSettings.telegram_chat_id" class="space-y-2">
+                  <div class="surface-light rounded-md p-3 flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <div class="text-sm text-emerald-300 font-semibold flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span x-text="$t('settings.telegram_global.connected')">Verbunden</span>
+                      </div>
+                      <div class="text-xs text-ink-400 mt-0.5">Chat-ID: <span class="font-mono" x-text="notifSettings.telegram_chat_id"></span></div>
                     </div>
-                    <div class="text-xs text-ink-400 mt-0.5">Chat-ID: <span class="font-mono" x-text="notifSettings.telegram_chat_id"></span></div>
+                    <button @click="unbindTgChat()" class="btn-danger text-xs px-3 py-1.5 rounded-md" x-text="$t('settings.telegram_global.unbind')">Trennen</button>
                   </div>
-                  <button @click="unbindTgChat()" class="btn-danger text-xs px-3 py-1.5 rounded-md" x-text="$t('settings.telegram_global.unbind')">Trennen</button>
+                  <!-- Admin-only Opt-Out: Push-Benachrichtigungen für jede Änderung -->
+                  <label x-show="currentUser.is_admin" class="flex items-center justify-between gap-3 surface-light rounded-md p-3 cursor-pointer">
+                    <div class="text-xs text-ink-200">
+                      <div class="font-semibold" x-text="$t('settings.telegram_global.admin_notify_label')">Admin-Push: alle Änderungen</div>
+                      <div class="text-[10px] text-ink-400 mt-0.5" x-text="$t('settings.telegram_global.admin_notify_hint')">Leads, Status-Wechsel, Owner-Wechsel, Termine, Mentions, fällige Reminder.</div>
+                    </div>
+                    <input type="checkbox" :checked="notifSettings.telegram_admin_notify === 1"
+                           @change="toggleAdminNotify($event.target.checked)"
+                           class="accent-brand-400 w-4 h-4 cursor-pointer">
+                  </label>
                 </div>
 
                 <div x-show="!notifSettings.telegram_chat_id" class="space-y-3">
@@ -8326,6 +8338,15 @@ function app() {
         this.toast(this.t('settings.telegram_global.bind_success'), 'success');
       } catch (e) { this.tgBindError = this.t('error.network'); }
       finally { this.tgBindLoading = false; }
+    },
+    async toggleAdminNotify(checked) {
+      try {
+        await fetch('/api/settings/notifications', {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ telegram_admin_notify: checked ? 1 : 0 }),
+        });
+        await this.loadNotifSettings();
+      } catch (e) { this.toast(this.t('error.network'), 'error'); }
     },
     async unbindTgChat() {
       if (!confirm(this.t('settings.telegram_global.unbind_confirm'))) return;
