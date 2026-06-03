@@ -2857,6 +2857,67 @@
                   </div>
                 </div>
               </div>
+
+              <!-- ============ TELEGRAM-BOT (Bot-API, getrennt von MTProto-Login) ============ -->
+              <div class="border-t border-white/[0.06] pt-4 mt-4">
+                <h4 class="text-[10px] font-bold text-ink-300 uppercase tracking-wider mb-2" x-text="$t('settings.telegram_bot.title')">Telegram-Bot (Befehle)</h4>
+                <p class="text-xs text-ink-400 mb-3" x-text="$t('settings.telegram_bot.subtitle')">Existierenden BotFather-Bot anbinden, um aus Telegram heraus Status zu setzen und Notizen anzulegen.</p>
+
+                <!-- Token-Setup -->
+                <div x-show="!notifSettings.has_telegram_token" class="space-y-2 mb-3">
+                  <label class="text-xs text-ink-400" x-text="$t('settings.telegram_bot.token_label')">Bot-Token aus BotFather</label>
+                  <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="password" x-model="tgBotTokenInput" :placeholder="$t('settings.telegram_bot.token_placeholder')" class="input flex-1 px-2.5 py-2 rounded-md text-sm font-mono" autocomplete="off">
+                    <button @click="saveTgBotToken()" :disabled="tgBotLoading || !tgBotTokenInput || !/^\d{6,15}:[A-Za-z0-9_-]{30,}$/.test(tgBotTokenInput || '')" class="btn-primary text-sm font-medium px-4 py-2 rounded-md whitespace-nowrap" x-text="$t('settings.telegram_bot.save_token')">Token speichern</button>
+                  </div>
+                  <p class="text-[10px] text-ink-500" x-text="$t('settings.telegram_bot.token_hint')">Format: <code>1234567890:ABCDEF…</code>. Existierenden Bot nutzen (BotFather → /mybots → API Token). Keine Bots mit Personennamen.</p>
+                </div>
+
+                <!-- Status / Verbinden -->
+                <div x-show="notifSettings.has_telegram_token" class="space-y-3">
+                  <div class="surface-light rounded-md p-3 flex items-center justify-between gap-3 flex-wrap">
+                    <div>
+                      <div class="text-sm font-semibold flex items-center gap-2" :class="notifSettings.telegram_chat_id ? 'text-emerald-300' : 'text-amber-300'">
+                        <span class="w-2 h-2 rounded-full" :class="notifSettings.telegram_chat_id ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'"></span>
+                        <span x-show="notifSettings.telegram_chat_id" x-text="$t('settings.telegram_bot.chat_connected')">Chat verbunden</span>
+                        <span x-show="!notifSettings.telegram_chat_id" x-text="$t('settings.telegram_bot.chat_pending')">Warte auf /start</span>
+                      </div>
+                      <div class="text-xs text-ink-400 mt-0.5" x-show="tgBotInfo">
+                        Bot: <span class="font-mono" x-text="'@' + (tgBotInfo?.username || '')"></span>
+                      </div>
+                      <div class="text-xs text-ink-400 mt-0.5" x-show="notifSettings.telegram_chat_id">
+                        Chat-ID: <span class="font-mono" x-text="notifSettings.telegram_chat_id"></span>
+                      </div>
+                    </div>
+                    <div class="flex gap-2">
+                      <button @click="testTgBot()" :disabled="tgBotLoading" class="btn-ghost text-xs px-3 py-1.5 rounded-md" x-text="tgBotLoading ? '…' : $t('settings.telegram_bot.test')">Test</button>
+                      <button @click="resetTgBot()" class="btn-danger text-xs px-3 py-1.5 rounded-md" x-text="$t('settings.telegram_bot.reset')">Trennen</button>
+                    </div>
+                  </div>
+
+                  <div x-show="!notifSettings.telegram_chat_id && tgBotInfo" class="surface-light rounded-md p-3 text-xs text-ink-300">
+                    <strong x-text="$t('settings.telegram_bot.start_step1')">1.</strong>
+                    <span x-text="$t('settings.telegram_bot.start_help_1')">In Telegram diesen Bot öffnen:</span>
+                    <a :href="'https://t.me/' + tgBotInfo.username" target="_blank" class="text-brand-400 hover:underline font-mono" x-text="'@' + tgBotInfo.username"></a>
+                    <br>
+                    <strong x-text="$t('settings.telegram_bot.start_step2')">2.</strong>
+                    <span x-text="$t('settings.telegram_bot.start_help_2')">/start senden — Chat verbindet sich automatisch innerhalb von ~30s.</span>
+                  </div>
+
+                  <div x-show="tgBotError" class="surface-light rounded-md p-3 text-xs text-rose-300" x-text="tgBotError"></div>
+
+                  <details class="text-xs text-ink-400">
+                    <summary class="cursor-pointer hover:text-ink-200" x-text="$t('settings.telegram_bot.commands_show')">Befehle anzeigen</summary>
+                    <div class="mt-2 space-y-1 font-mono text-[11px] leading-relaxed pl-3">
+                      <div><code>/help</code> — <span x-text="$t('settings.telegram_bot.cmd.help')">Übersicht</span></div>
+                      <div><code>/me</code> — <span x-text="$t('settings.telegram_bot.cmd.me')">Account-Info</span></div>
+                      <div><code>/find &lt;suche&gt;</code> — <span x-text="$t('settings.telegram_bot.cmd.find')">Anlagen suchen</span></div>
+                      <div><code>/status &lt;mastr&gt; &lt;status&gt;</code> — <span x-text="$t('settings.telegram_bot.cmd.status')">Status setzen</span></div>
+                      <div><code>/note &lt;mastr&gt; &lt;text&gt;</code> — <span x-text="$t('settings.telegram_bot.cmd.note')">Notiz anhängen</span></div>
+                    </div>
+                  </details>
+                </div>
+              </div>
             </section>
 
             <!-- Drafts -->
@@ -4978,6 +5039,8 @@ function app() {
     notifications: [], unreadNotifCount: 0, showNotifPanel: false, notifPollTimer: null,
     notifSettings: {}, telegramToken: '',
     tgPhone: '', tgCode: '', tgPassword: '', tgLoginToken: '', tgNeeds2FA: false, tgLoading: false,
+    // Bot-API (BotFather) — getrennt von MTProto
+    tgBotTokenInput: '', tgBotLoading: false, tgBotInfo: null, tgBotError: '',
 
     // Chat
     showChat: false, dmThreads: [], dmActive: null, dmMessages: [], newDmText: '', dmPollTimer: null,
@@ -8170,6 +8233,55 @@ function app() {
     tgCancelLogin() { this.tgLoginToken = ''; this.tgCode = ''; this.tgPassword = ''; this.tgNeeds2FA = false; },
     async tgLogoutSession() { if (!confirm(this.t('confirm.disconnect_telegram'))) return; const r = await fetch('/api/settings/telegram/logout', { method:'POST' }); if (r.ok) { this.toast(this.t('toast.telegram_disconnected'), 'success'); await this.loadNotifSettings(); } },
     async testTelegram() { this.toast(this.t('toast.sending_test'), 'info'); const r = await fetch('/api/settings/telegram/test', { method:'POST' }); const d = await r.json(); if (r.ok) this.toast(d.message, 'success'); else this.toast(d.error, 'error'); },
+
+    // ===== Telegram-Bot (Bot-API) =====
+    async saveTgBotToken() {
+      const tok = (this.tgBotTokenInput || '').trim();
+      if (!/^\d{6,15}:[A-Za-z0-9_-]{30,}$/.test(tok)) { this.toast(this.t('settings.telegram_bot.token_invalid'), 'error'); return; }
+      this.tgBotLoading = true; this.tgBotError = '';
+      try {
+        const r = await fetch('/api/settings/notifications', {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ telegram_bot_token: tok }),
+        });
+        if (!r.ok) { const d = await r.json().catch(()=>({})); this.toast(d.error || this.t('error.generic'), 'error'); return; }
+        this.tgBotTokenInput = '';
+        await this.loadNotifSettings();
+        // Direkt testen
+        await this.testTgBot();
+      } catch (e) { this.toast(this.t('error.network'), 'error'); }
+      finally { this.tgBotLoading = false; }
+    },
+    async testTgBot() {
+      this.tgBotLoading = true; this.tgBotError = ''; this.tgBotInfo = null;
+      try {
+        const r = await fetch('/api/settings/telegram-bot/test', { method:'POST' });
+        const d = await r.json().catch(()=>({}));
+        if (d.bot) this.tgBotInfo = d.bot;
+        if (r.ok) {
+          this.toast(this.t('settings.telegram_bot.test_ok'), 'success');
+          await this.loadNotifSettings();
+        } else {
+          this.tgBotError = d.error || this.t('error.generic');
+        }
+      } catch (e) { this.tgBotError = this.t('error.network'); }
+      finally { this.tgBotLoading = false; }
+    },
+    async resetTgBot() {
+      if (!confirm(this.t('settings.telegram_bot.reset_confirm'))) return;
+      // Token + chat_id zurücksetzen via Settings (Token empty + chat_id empty)
+      try {
+        await fetch('/api/settings/notifications', {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ telegram_chat_id: '' }),
+        });
+        // Token-Löschung gibt es nicht via Settings — Admin SSH-Pfad oder DB-Direktedit nötig.
+        // UI-State zurücksetzen.
+        this.tgBotInfo = null; this.tgBotError = '';
+        await this.loadNotifSettings();
+        this.toast(this.t('settings.telegram_bot.reset_done'), 'success');
+      } catch (e) { this.toast(this.t('error.network'), 'error'); }
+    },
 
     // ============== DMs ==============
     toggleChat() {
