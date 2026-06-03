@@ -17,13 +17,15 @@ const MASTER_KEY_PATH = process.env.MASTER_KEY_PATH || join(DATA_DIR, ".master.k
 if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
 initMasterKey(MASTER_KEY_PATH);
 const db = new Database(DB_PATH);
+// Concurrent-Access: Haupt-Server haelt DB im WAL-Mode. busy_timeout=10s wartet auf Locks.
+db.exec("PRAGMA busy_timeout = 10000;");
 initSchema(db);
 ensureTelegramOffsetColumn(db);
 
 const start = Date.now();
 try {
   const r = await pollAllConfiguredUsers(db);
-  console.log(`[${new Date().toISOString()}] telegram-listen: ${r.users_scanned} users, ${r.commands_processed} commands processed in ${Date.now() - start}ms`);
+  console.log(`[${new Date().toISOString()}] telegram-listen: ${r.users_scanned} per-user-bots, ${r.commands_processed} per-user-cmds, ${r.global_processed ?? 0} global-cmds in ${Date.now() - start}ms`);
 } catch (e) {
   console.error("telegram-listen failed:", e);
   process.exitCode = 1;

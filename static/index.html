@@ -2858,10 +2858,51 @@
                 </div>
               </div>
 
-              <!-- ============ TELEGRAM-BOT (Bot-API, getrennt von MTProto-Login) ============ -->
+              <!-- ============ GLOBALER BOT — Self-Service Chat-Binding ============ -->
               <div class="border-t border-white/[0.06] pt-4 mt-4">
-                <h4 class="text-[10px] font-bold text-ink-300 uppercase tracking-wider mb-2" x-text="$t('settings.telegram_bot.title')">Telegram-Bot (Befehle)</h4>
-                <p class="text-xs text-ink-400 mb-3" x-text="$t('settings.telegram_bot.subtitle')">Existierenden BotFather-Bot anbinden, um aus Telegram heraus Status zu setzen und Notizen anzulegen.</p>
+                <h4 class="text-[10px] font-bold text-ink-300 uppercase tracking-wider mb-2" x-text="$t('settings.telegram_global.title')">Solar-Bot verbinden</h4>
+                <p class="text-xs text-ink-400 mb-3" x-text="$t('settings.telegram_global.subtitle')">Den geteilten Telegram-Bot mit deinem Account verknüpfen — Schreib-Commands aus Telegram heraus.</p>
+
+                <div x-show="notifSettings.telegram_chat_id" class="surface-light rounded-md p-3 flex items-center justify-between gap-3 flex-wrap">
+                  <div>
+                    <div class="text-sm text-emerald-300 font-semibold flex items-center gap-2">
+                      <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                      <span x-text="$t('settings.telegram_global.connected')">Verbunden</span>
+                    </div>
+                    <div class="text-xs text-ink-400 mt-0.5">Chat-ID: <span class="font-mono" x-text="notifSettings.telegram_chat_id"></span></div>
+                  </div>
+                  <button @click="unbindTgChat()" class="btn-danger text-xs px-3 py-1.5 rounded-md" x-text="$t('settings.telegram_global.unbind')">Trennen</button>
+                </div>
+
+                <div x-show="!notifSettings.telegram_chat_id" class="space-y-3">
+                  <div class="surface-light rounded-md p-3 text-xs text-ink-300 leading-relaxed">
+                    <div class="mb-2"><strong>1.</strong> <a href="https://t.me/solardbbot" target="_blank" class="text-brand-400 hover:underline font-mono">@solardbbot</a> <span x-text="$t('settings.telegram_global.step1')">in Telegram öffnen</span></div>
+                    <div class="mb-2"><strong>2.</strong> <span x-text="$t('settings.telegram_global.step2')">`/start` senden — der Bot antwortet mit deiner Chat-ID</span></div>
+                    <div><strong>3.</strong> <span x-text="$t('settings.telegram_global.step3')">Chat-ID hier eintragen:</span></div>
+                  </div>
+                  <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" x-model="tgChatIdInput" :placeholder="$t('settings.telegram_global.chat_id_placeholder')" class="input flex-1 px-2.5 py-2 rounded-md text-sm font-mono" inputmode="numeric" pattern="-?\d+">
+                    <button @click="bindTgChat()" :disabled="tgBindLoading || !/^-?\d{4,20}$/.test(tgChatIdInput || '')" class="btn-primary text-sm font-medium px-4 py-2 rounded-md whitespace-nowrap" x-text="tgBindLoading ? '…' : $t('settings.telegram_global.bind')">Verknüpfen</button>
+                  </div>
+                  <div x-show="tgBindError" class="text-xs text-rose-300" x-text="tgBindError"></div>
+                </div>
+
+                <details class="mt-3 text-xs text-ink-400">
+                  <summary class="cursor-pointer hover:text-ink-200" x-text="$t('settings.telegram_bot.commands_show')">Befehle anzeigen</summary>
+                  <div class="mt-2 space-y-1 font-mono text-[11px] leading-relaxed pl-3">
+                    <div><code>/help</code> — <span x-text="$t('settings.telegram_bot.cmd.help')">Übersicht</span></div>
+                    <div><code>/me</code> — <span x-text="$t('settings.telegram_bot.cmd.me')">Account-Info</span></div>
+                    <div><code>/find &lt;suche&gt;</code> — <span x-text="$t('settings.telegram_bot.cmd.find')">Anlagen suchen</span></div>
+                    <div><code>/status &lt;mastr&gt; &lt;status&gt;</code> — <span x-text="$t('settings.telegram_bot.cmd.status')">Status setzen</span></div>
+                    <div><code>/note &lt;mastr&gt; &lt;text&gt;</code> — <span x-text="$t('settings.telegram_bot.cmd.note')">Notiz anhängen</span></div>
+                  </div>
+                </details>
+              </div>
+
+              <!-- ============ ADVANCED: PRO-USER BOT (Bot-API, eigener Bot pro User) ============ -->
+              <details class="border-t border-white/[0.06] pt-4 mt-4">
+                <summary class="cursor-pointer text-[10px] font-bold text-ink-400 uppercase tracking-wider hover:text-ink-200" x-text="$t('settings.telegram_bot.advanced')">Erweitert: eigener Bot statt geteilter</summary>
+                <p class="text-xs text-ink-400 mb-3 mt-2" x-text="$t('settings.telegram_bot.subtitle')">Existierenden BotFather-Bot anbinden, um aus Telegram heraus Status zu setzen und Notizen anzulegen.</p>
 
                 <!-- Token-Setup -->
                 <div x-show="!notifSettings.has_telegram_token" class="space-y-2 mb-3">
@@ -2917,7 +2958,7 @@
                     </div>
                   </details>
                 </div>
-              </div>
+              </details>
             </section>
 
             <!-- Drafts -->
@@ -5041,6 +5082,8 @@ function app() {
     tgPhone: '', tgCode: '', tgPassword: '', tgLoginToken: '', tgNeeds2FA: false, tgLoading: false,
     // Bot-API (BotFather) — getrennt von MTProto
     tgBotTokenInput: '', tgBotLoading: false, tgBotInfo: null, tgBotError: '',
+    // Globaler Bot Chat-Binding
+    tgChatIdInput: '', tgBindLoading: false, tgBindError: '',
 
     // Chat
     showChat: false, dmThreads: [], dmActive: null, dmMessages: [], newDmText: '', dmPollTimer: null,
@@ -8266,6 +8309,34 @@ function app() {
         }
       } catch (e) { this.tgBotError = this.t('error.network'); }
       finally { this.tgBotLoading = false; }
+    },
+    async bindTgChat() {
+      const id = (this.tgChatIdInput || '').trim();
+      if (!/^-?\d{4,20}$/.test(id)) { this.tgBindError = this.t('settings.telegram_global.chat_id_invalid'); return; }
+      this.tgBindLoading = true; this.tgBindError = '';
+      try {
+        const r = await fetch('/api/me/telegram-chat', {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ chat_id: id }),
+        });
+        const d = await r.json().catch(()=>({}));
+        if (!r.ok) { this.tgBindError = d.error || this.t('error.generic'); return; }
+        this.tgChatIdInput = '';
+        await this.loadNotifSettings();
+        this.toast(this.t('settings.telegram_global.bind_success'), 'success');
+      } catch (e) { this.tgBindError = this.t('error.network'); }
+      finally { this.tgBindLoading = false; }
+    },
+    async unbindTgChat() {
+      if (!confirm(this.t('settings.telegram_global.unbind_confirm'))) return;
+      try {
+        await fetch('/api/settings/notifications', {
+          method:'PUT', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ telegram_chat_id: '' }),
+        });
+        await this.loadNotifSettings();
+        this.toast(this.t('settings.telegram_global.unbind_done'), 'success');
+      } catch (e) { this.toast(this.t('error.network'), 'error'); }
     },
     async resetTgBot() {
       if (!confirm(this.t('settings.telegram_bot.reset_confirm'))) return;

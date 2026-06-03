@@ -2489,6 +2489,56 @@ async function handleRequest(req: Request): Promise<Response> {
         const r = await pollAllConfiguredUsers(db);
         return json({ success: true, ...r });
       }
+      // ===== Globaler Bot — Admin setzt Token einmalig (encrypted in app_settings) =====
+      if (path === "/api/admin/telegram-global-bot" && method === "GET") {
+        const auth = requireAdmin(req); if ("response" in auth) return auth.response;
+        const row = db.prepare("SELECT value FROM app_settings WHERE key = 'telegram_global_bot_token_enc'").get() as any;
+        const usersWithChat = db.prepare("SELECT COUNT(*) c FROM users WHERE telegram_chat_id IS NOT NULL AND telegram_chat_id != ''").get() as any;
+        return json({
+          has_token: !!row?.value,
+          users_with_chat: usersWithChat?.c || 0,
+        });
+      }
+      if (path === "/api/admin/telegram-global-bot" && method === "PUT") {
+        const auth = requireAdmin(req); if ("response" in auth) return auth.response;
+        const b = (await req.json()) as any;
+        const tok = String(b.token || "").trim();
+        if (!/^\d{6,15}:[A-Za-z0-9_-]{30,}$/.test(tok)) return err("Token-Format ungueltig", 400);
+        // Test via getMe vor dem Speichern
+        try {
+          const r = await fetch(`https://api.telegram.org/bot${tok}/getMe`);
+          const me = (await r.json()) as any;
+          if (!me.ok) return err(`Telegram-API-Fehler: ${me.description || "Token ungültig"}`, 400);
+          db.prepare(`
+            INSERT INTO app_settings (key, value, updated_by) VALUES ('telegram_global_bot_token_enc', ?, ?)
+            ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_by = excluded.updated_by, updated_at = CURRENT_TIMESTAMP
+          `).run(encrypt(tok), auth.user.id);
+          logAudit(db, auth.user.id, auth.user.username, "telegram_global_bot_token_set", "app_settings", null, `bot=@${me.result.username}`);
+          return json({ success: true, bot: me.result });
+        } catch (e: any) {
+          return err(`Test fehlgeschlagen: ${e?.message || String(e)}`, 500);
+        }
+      }
+      if (path === "/api/admin/telegram-global-bot" && method === "DELETE") {
+        const auth = requireAdmin(req); if ("response" in auth) return auth.response;
+        db.prepare("DELETE FROM app_settings WHERE key IN ('telegram_global_bot_token_enc', 'telegram_global_last_update_id')").run();
+        logAudit(db, auth.user.id, auth.user.username, "telegram_global_bot_token_removed", "app_settings", null, "");
+        return json({ success: true });
+      }
+      // ===== User-Self-Bind: Chat-ID nach /start eintragen =====
+      // POST /api/me/telegram-chat  { chat_id: "..." }
+      if (path === "/api/me/telegram-chat" && method === "PUT") {
+        const auth = requireUser(req); if ("response" in auth) return auth.response;
+        const b = (await req.json()) as any;
+        const chatId = String(b.chat_id || "").trim();
+        if (!chatId) return err("chat_id erforderlich");
+        if (!/^-?\d{4,20}$/.test(chatId)) return err("chat_id muss numerisch sein");
+        // Prüfen ob jemand anderes diese chat_id schon hat (eindeutig pro Bot)
+        const conflict = db.prepare("SELECT id, username FROM users WHERE telegram_chat_id = ? AND id != ?").get(chatId, auth.user.id) as any;
+        if (conflict) return err(`Chat-ID bereits an User ${conflict.username} vergeben`, 409);
+        db.prepare("UPDATE users SET telegram_chat_id = ? WHERE id = ?").run(chatId, auth.user.id);
+        return json({ success: true, chat_id: chatId });
+      }
 
       // ===== TRACKING (public, kein Auth) =====
       const openMatch = path.match(/^\/t\/o\/([a-f0-9]{32})\.png$/i);

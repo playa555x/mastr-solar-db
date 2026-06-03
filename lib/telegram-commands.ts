@@ -211,8 +211,11 @@ export async function pollAndHandleUserUpdates(db: Database, u: AuthorizedUser):
   return { processed, lastUpdateId: maxId };
 }
 
-export async function pollAllConfiguredUsers(db: Database): Promise<{ users_scanned: number; commands_processed: number }> {
-  // Token zwingend, chat_id optional (wird beim ersten /start gesetzt).
+export async function pollAllConfiguredUsers(db: Database): Promise<{ users_scanned: number; commands_processed: number; global_processed: number }> {
+  let commandsProcessed = 0;
+  let globalProcessed = 0;
+
+  // 1) Pro-User-Bots (Legacy/Multi-Tenant)
   const users = db.prepare(`
     SELECT id, username, is_admin, is_viewer, active,
       COALESCE(telegram_chat_id, '') as telegram_chat_id,
@@ -221,7 +224,6 @@ export async function pollAllConfiguredUsers(db: Database): Promise<{ users_scan
     FROM users
     WHERE active = 1 AND telegram_bot_token_enc IS NOT NULL AND telegram_bot_token_enc != ''
   `).all() as AuthorizedUser[];
-  let commandsProcessed = 0;
   for (const u of users) {
     try {
       const r = await pollAndHandleUserUpdates(db, u);
@@ -230,7 +232,98 @@ export async function pollAllConfiguredUsers(db: Database): Promise<{ users_scan
       console.error(`[tg-cmd] user ${u.username} failed:`, e);
     }
   }
-  return { users_scanned: users.length, commands_processed: commandsProcessed };
+
+  // 2) Globaler Bot (geteilte Instanz für alle User)
+  try {
+    globalProcessed = await pollGlobalBot(db);
+  } catch (e) {
+    console.error("[tg-cmd] global bot failed:", e);
+  }
+
+  return { users_scanned: users.length, commands_processed: commandsProcessed, global_processed: globalProcessed };
+}
+
+/**
+ * Globaler-Bot-Polling: ein einziger Bot bedient alle User. Identifikation
+ * pro Nachricht via chat_id → users.telegram_chat_id. Chat-Binding-Flow:
+ *   1. User schreibt /start an den globalen Bot
+ *   2. Bot antwortet mit dem Klartext-Chat-Code, den der User in Profil → Telegram-Settings einträgt
+ *   3. Server verknüpft chat_id mit user_id, ab dann sind Commands autorisiert
+ */
+export async function pollGlobalBot(db: Database): Promise<number> {
+  const tokenRow = db.prepare("SELECT value FROM app_settings WHERE key = 'telegram_global_bot_token_enc'").get() as any;
+  if (!tokenRow?.value) return 0;
+  const token = decrypt(tokenRow.value);
+  const offsetRow = db.prepare("SELECT value FROM app_settings WHERE key = 'telegram_global_last_update_id'").get() as any;
+  const offset = parseInt(offsetRow?.value || "0", 10) || 0;
+  const updates = await tgGetUpdates(token, offset);
+  let maxId = offset;
+  let processed = 0;
+  for (const upd of updates) {
+    if (upd.update_id > maxId) maxId = upd.update_id;
+    const msg = upd.message;
+    if (!msg || !msg.text) continue;
+    const incomingChatId = String(msg.chat.id);
+    // chat_id → user?
+    const u = db.prepare(`
+      SELECT id, username, is_admin, is_viewer, active
+      FROM users WHERE telegram_chat_id = ? AND active = 1
+    `).get(incomingChatId) as any;
+    const text = msg.text.trim();
+    if (!u) {
+      // Unbekannter Chat — zeige Chat-ID damit der User sie im UI eintragen kann.
+      if (text === "/start" || text === "/help") {
+        await tgSend(token, incomingChatId, [
+          "👋 *Willkommen!*",
+          "",
+          "Damit dieser Bot dich erkennt, gehe in der CRM:",
+          "Profil → Telegram-Settings → *Bot-Chat verbinden*",
+          "",
+          "Deine Chat-ID:",
+          "`" + incomingChatId + "`",
+          "",
+          "Trage sie ein, dann sind alle Befehle freigeschaltet.",
+        ].join("\n"));
+      } else {
+        await tgSend(token, incomingChatId, "⛔ Dieser Chat ist nicht verknüpft. Sende `/start`, um die Verknüpfungs-Anleitung zu sehen.");
+      }
+      processed++;
+      continue;
+    }
+    if (u.is_viewer === 1) {
+      await tgSend(token, incomingChatId, "⛔ Viewer-Accounts dürfen keine Schreib-Commands ausführen.");
+      continue;
+    }
+    let reply: string;
+    try {
+      if (text === "/help" || text === "/start") reply = exec_help();
+      else if (text === "/me") reply = exec_me(db, u.id);
+      else if (text.startsWith("/find ")) reply = exec_find(db, u.id, text.slice(6));
+      else if (text.startsWith("/status ")) {
+        const rest = text.slice(8).trim();
+        const m = rest.match(/^(\S+)\s+(\S+)$/);
+        reply = m ? exec_status(db, u.id, m[1], m[2]) : "Format: `/status MASTR neuer_status`";
+      } else if (text.startsWith("/note ")) {
+        const rest = text.slice(6).trim();
+        const idx = rest.indexOf(" ");
+        if (idx < 0) reply = "Format: `/note MASTR text...`";
+        else reply = exec_note(db, u.id, rest.slice(0, idx), rest.slice(idx + 1));
+      } else {
+        reply = "Unbekannter Befehl. `/help` für Übersicht.";
+      }
+    } catch (e: any) {
+      reply = `❌ Fehler: ${e?.message || String(e)}`;
+    }
+    await tgSend(token, incomingChatId, reply);
+    processed++;
+  }
+  if (maxId > offset) {
+    db.prepare(`
+      INSERT INTO app_settings (key, value) VALUES ('telegram_global_last_update_id', ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP
+    `).run(String(maxId));
+  }
+  return processed;
 }
 
 /**
