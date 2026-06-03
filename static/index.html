@@ -8409,20 +8409,79 @@ function app() {
         this.anlageImages = r.ok ? await r.json() : [];
       } catch (e) { this.anlageImages = []; }
     },
+    // Komprimiert ein Bild client-seitig: max 2560px Kante, WebP@0.85 (Fallback JPEG).
+    // Liefert das Original zurück wenn:
+    //  - GIF (Animation würde brechen)
+    //  - <200 KB (schon klein genug)
+    //  - Komprimierung bringt <10% Reduktion
+    async compressImageFile(file) {
+      if (file.type === 'image/gif') return { file, original_size: file.size, savings: 0 };
+      if (file.size < 200 * 1024) return { file, original_size: file.size, savings: 0 };
+      let bitmap;
+      try { bitmap = await createImageBitmap(file); }
+      catch { return { file, original_size: file.size, savings: 0 }; }
+      const MAX_EDGE = 2560;
+      const longest = Math.max(bitmap.width, bitmap.height);
+      const scale = longest > MAX_EDGE ? MAX_EDGE / longest : 1;
+      const targetW = Math.round(bitmap.width * scale);
+      const targetH = Math.round(bitmap.height * scale);
+      const canvas = ('OffscreenCanvas' in window) ? new OffscreenCanvas(targetW, targetH) : Object.assign(document.createElement('canvas'), { width: targetW, height: targetH });
+      const ctx = canvas.getContext('2d', { alpha: file.type === 'image/png' });
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(bitmap, 0, 0, targetW, targetH);
+      bitmap.close && bitmap.close();
+      // WebP zuerst, sonst JPEG.
+      let blob = null;
+      const tryEncode = async (mime, q) => {
+        if (canvas.convertToBlob) {
+          try { return await canvas.convertToBlob({ type: mime, quality: q }); } catch { return null; }
+        }
+        return await new Promise(res => canvas.toBlob(b => res(b), mime, q));
+      };
+      blob = await tryEncode('image/webp', 0.85);
+      let mime = 'image/webp', ext = '.webp';
+      if (!blob || blob.size === 0) { blob = await tryEncode('image/jpeg', 0.85); mime = 'image/jpeg'; ext = '.jpg'; }
+      if (!blob) return { file, original_size: file.size, savings: 0 };
+      // Skip wenn keine echte Ersparnis.
+      if (blob.size >= file.size * 0.9) return { file, original_size: file.size, savings: 0 };
+      const baseName = (file.name || 'image').replace(/\.[^.]+$/, '');
+      const compressed = new File([blob], baseName + ext, { type: mime, lastModified: Date.now() });
+      return { file: compressed, original_size: file.size, savings: 1 - (blob.size / file.size) };
+    },
     async uploadAnlageImages(fileList) {
       if (!this.selectedAnlage?.id) return;
       const files = Array.from(fileList || []).filter(f => f.type.startsWith('image/'));
       if (files.length === 0) return;
       this.anlageImagesUploading = true;
+      let totalOriginal = 0, totalCompressed = 0;
       try {
-        for (const f of files) {
-          if (f.size > 10 * 1024 * 1024) { this.toast(f.name + ': > 10 MB', 'error'); continue; }
+        for (const original of files) {
+          if (original.size > 50 * 1024 * 1024) { this.toast(original.name + ': > 50 MB nicht erlaubt', 'error'); continue; }
+          let f = original;
+          let savings = 0;
+          try {
+            const c = await this.compressImageFile(original);
+            f = c.file; savings = c.savings;
+            totalOriginal += c.original_size;
+            totalCompressed += c.file.size;
+          } catch (e) {
+            console.warn('Compression failed, uploading original:', e);
+            totalOriginal += original.size; totalCompressed += original.size;
+          }
+          if (f.size > 10 * 1024 * 1024) { this.toast(original.name + ': > 10 MB nach Kompression', 'error'); continue; }
           const fd = new FormData();
           fd.append('file', f);
           const r = await fetch('/api/anlagen/' + this.selectedAnlage.id + '/images', { method: 'POST', body: fd });
           const d = await r.json().catch(() => ({}));
-          if (!r.ok) { this.toast(f.name + ': ' + (d.error || 'Upload-Fehler'), 'error'); continue; }
+          if (!r.ok) { this.toast(original.name + ': ' + (d.error || 'Upload-Fehler'), 'error'); continue; }
           this.anlageImages.unshift(d.image);
+        }
+        if (totalOriginal > totalCompressed * 1.05) {
+          const pct = Math.round((1 - totalCompressed / totalOriginal) * 100);
+          const orig = (totalOriginal / 1048576).toFixed(1);
+          const comp = (totalCompressed / 1048576).toFixed(1);
+          this.toast(`${orig} MB → ${comp} MB (-${pct}%)`, 'success');
         }
       } finally { this.anlageImagesUploading = false; }
     },
