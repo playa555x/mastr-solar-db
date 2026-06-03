@@ -1,0 +1,831 @@
+/*
+  ============================================================================
+  CENTRAL THEME-DATEI — Repowering DE
+  ============================================================================
+  Alle Farben + Komponenten-Styles werden hier zentral verwaltet.
+  Sowohl der CRM (index.html) als auch die Landing-Page (lead.html) lesen
+  von hier — eine Anpassung greift überall.
+
+  STRUKTUR:
+    1. Brand-Konstanten (unveraendert in beiden Modi)
+    2. Light-Theme Tokens   (:root)
+    3. Dark-Theme Tokens    (html.dark)
+    4. Komponenten-Styles   (.surface, .btn-*, .card, ...)
+    5. Tailwind-Class-Overrides (text-ink-*, bg-cyan-*, ...)
+
+  AENDERN:
+    - Brand-Farbe (Blau): suche nach "#232F84" und ersetze
+    - Akzent-Farbe (Gelb): suche nach "#FDB913" und ersetze
+    - Dark-Mode-Hintergrund: var(--bg) in der dark-Sektion
+    - Light-Mode-Hintergrund: var(--bg) in :root
+  ============================================================================
+*/
+
+/* === 1. BRAND-KONSTANTEN ============================================ */
+:root {
+  /* Diese 4 Farben definieren die Marke. Identisch in Light + Dark. */
+  --brand:       #232F84;   /* Feedgy-Blau — Hauptfarbe */
+  --brand-dark:  #1a2466;   /* Dunkler fuer Hover */
+  --brand-light: #3a4ab0;   /* Heller fuer Akzente */
+  --accent:      #FDB913;   /* Gelb — sekundaerer Akzent / CTAs */
+  --accent-dark: #e0a30b;   /* Dunkler fuer Hover */
+}
+
+/* === 2. LIGHT-THEME =============================================== */
+:root {
+  --bg:             #ffffff;
+  --bg-soft:        #f9fafb;
+  --bg-softer:      #f4f4f5;
+  --surface:        #ffffff;
+  --surface-2:      #f9fafb;
+
+  --border:         #d1d5db;
+  --border-soft:    #e5e7eb;
+  --border-strong:  #9ca3af;
+
+  --ink:            #0a0a0a;   /* primary text */
+  --ink-2:          #18181b;
+  --ink-3:          #3f3f46;
+  --ink-muted:      #52525b;
+  --ink-subtle:     #71717a;
+
+  --shadow-card:   0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-hover:  0 10px 25px -10px rgba(35,47,132,0.2);
+  --shadow-modal:  0 30px 80px -20px rgba(35,47,132,0.25);
+
+  --table-header-bg: #f3f4f6;
+  --input-bg:        #ffffff;
+  --input-border:    #d1d5db;
+  --modal-backdrop:  rgba(15,23,42,0.4);
+  --scrollbar-thumb: #cbd5e1;
+  --scrollbar-track: #f4f4f5;
+}
+
+/* === 3. DARK-THEME ================================================ */
+html.dark {
+  --bg:             #0b1020;   /* deep marine — etwas waermer als pures schwarz */
+  --bg-soft:        #11172a;
+  --bg-softer:      #1a2138;
+  --surface:        #131a2e;
+  --surface-2:      #1a2138;
+
+  --border:         #2a3454;
+  --border-soft:    #1c2541;
+  --border-strong:  #3b4878;
+
+  --ink:            #f1f5f9;
+  --ink-2:          #e2e8f0;
+  --ink-3:          #cbd5e1;
+  --ink-muted:      #94a3b8;
+  --ink-subtle:     #64748b;
+
+  --shadow-card:   0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+  --shadow-hover:  0 10px 25px -10px rgba(253,185,19,0.25);
+  --shadow-modal:  0 30px 80px -20px rgba(0,0,0,0.7);
+
+  --table-header-bg: #1a2138;
+  --input-bg:        #11172a;
+  --input-border:    #2a3454;
+  --modal-backdrop:  rgba(0,0,0,0.7);
+  --scrollbar-thumb: #2a3454;
+  --scrollbar-track: #11172a;
+}
+
+/* Inline-Marker-Labels (Leistung + Jahr) bei hohem Zoom */
+.leaflet-tooltip.map-marker-label {
+  background: rgba(255,255,255,0.92);
+  color: #232F84;
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border: none;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  white-space: nowrap;
+  letter-spacing: 0.1px;
+}
+.leaflet-tooltip.map-marker-label::before { display: none; }
+html.dark .leaflet-tooltip.map-marker-label {
+  background: rgba(19,26,46,0.92);
+  color: #FDB913;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+}
+
+/* Leaflet interne Panes nutzen z-index 200-700. Container auf z:1 packen damit Modals
+   (die ausserhalb z:40-50 liegen) zuverlaessig DARUEBER liegen. */
+.leaflet-container { z-index: 1 !important; }
+/* Modale (Anlage-Detail, Mail, Call, Kunde etc.) muessen IMMER ueber Karten-Layer liegen */
+.modal-backdrop { z-index: 9999 !important; }
+
+/* === MAP: vollbreit, floating filter, leaflet-fullscreen === */
+/* --tb wird via JS aus tatsaechlicher Topbar/Nav-Hoehe gesetzt -> kein Bottom-Overflow mehr */
+.map-fullbleed {
+  position: relative;
+  width: calc(100vw - var(--sbw, 0px));
+  margin-left: calc((100% - 100vw + var(--sbw, 0px)) / 2);
+  margin-bottom: calc(-1 * var(--main-pad-b, 24px));  /* kompensiert main py-bottom */
+  box-sizing: border-box;
+  max-width: calc(100vw - var(--sbw, 0px));
+  height: calc(100vh - var(--tb, 160px));
+  padding: 0;
+  overflow: hidden;
+}
+.leaflet-fullscreen {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+}
+.map-filter-floating {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 500;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 12px;
+  padding: 8px 10px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+  opacity: 0.6;
+  transition: opacity 200ms ease, background 200ms ease;
+  max-width: calc(100% - 80px);
+}
+.map-filter-floating:hover { opacity: 1; background: rgba(255,255,255,0.92); }
+html.dark .map-filter-floating {
+  background: rgba(19,26,46,0.55);
+  border-color: rgba(255,255,255,0.1);
+}
+html.dark .map-filter-floating:hover { background: rgba(19,26,46,0.94); }
+
+/* === MOBILE (< 768px): Tap-Targets, kein overflow, lesbare Schrift === */
+@media (max-width: 767px) {
+  main { padding: 8px 6px !important; }
+  /* Topbar kompakter */
+  header.surface .h-12 { height: 44px; }
+  /* Tabs scrollbar horizontal aber gewohnt swipe-bar */
+  nav .tab-pill, .tab-pill { padding: 6px 10px !important; font-size: 12px !important; }
+  /* Modals: Vollbild auf Mobile */
+  .modal-content { max-width: 100vw !important; width: 100vw !important; margin: 0 !important; border-radius: 0 !important; min-height: 100vh; }
+  .modal-backdrop { padding: 0 !important; }
+  /* Tabellen Mobile: horizontal scroll im Container, Zellen kompakter */
+  table.data-table { font-size: 12px; }
+  table.data-table td, table.data-table th { padding: 6px 8px !important; }
+  /* Cards mit weniger Padding */
+  .card { padding: 12px !important; }
+  .surface { padding: 12px !important; }
+  /* Kanban-Spalten Mobile: schon Fallback per 768px-Media; siehe unten */
+  /* Calendar FAB unter Toolbar nicht verstecken */
+  .calendar-fab { bottom: 70px !important; }
+  /* Map-Filter passt unter Topbar */
+  .map-filter-floating { top: 56px !important; left: 8px !important; right: 8px !important; max-width: calc(100vw - 16px); padding: 6px 8px !important; }
+  .map-filter-floating .input { font-size: 12px !important; padding: 4px 8px !important; }
+  /* Form-Felder Mobile: voll lesbar */
+  .input, input.input, select.input, textarea.input { font-size: 16px !important; }  /* 16px verhindert iOS-Auto-Zoom */
+  /* Dropdowns + Modal-Footer scrollen mit */
+  footer { padding: 12px 14px !important; flex-wrap: wrap; gap: 8px !important; }
+  /* Btn-Mindestgroesse fuer Tap */
+  button, .btn-primary, .btn-secondary, .btn-ghost { min-height: 38px; }
+}
+
+/* === Settings Quick-Nav-Pills === */
+.settings-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: all 0.15s;
+  border: 1px solid transparent;
+}
+.settings-nav-pill:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+/* Highlight-Flash beim Scroll-To */
+.section-highlight {
+  animation: section-flash 1.5s ease-out;
+}
+@keyframes section-flash {
+  0% { box-shadow: 0 0 0 4px rgba(6, 182, 212, 0.5); }
+  100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+}
+
+/* === GLOBAL: volle Breite, hidden scrollbars (Funktion bleibt), kein Bottom-Overflow === */
+html, body {
+  overflow-x: hidden !important;
+  scrollbar-width: none;       /* Firefox */
+  -ms-overflow-style: none;    /* IE/Edge */
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }  /* Chrome/Safari */
+
+/* Auch innerhalb der App: alle .scroll-area / overflow-Container ohne sichtbare Scrollbar */
+.scroll-area, [class*="overflow-"], main, .surface {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.scroll-area::-webkit-scrollbar,
+[class*="overflow-"]::-webkit-scrollbar,
+main::-webkit-scrollbar { display: none; }
+
+/* === KANBAN: vollbreit, hidden scrollbar, moderne Pipeline === */
+/* Full-Bleed-Pattern: --sbw wird per JS gesetzt (siehe initFullBleedScrollbar),
+   damit 100vw NICHT um die vertikale Scrollbar überschiesst. */
+.kanban-fullbleed {
+  position: relative;
+  width: calc(100vw - var(--sbw, 0px));
+  margin-left: calc((100% - 100vw + var(--sbw, 0px)) / 2);
+  padding: 8px 0 24px 0;
+  box-sizing: border-box;
+  max-width: calc(100vw - var(--sbw, 0px));
+}
+.kanban-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  justify-content: space-between;
+  padding: 8px 24px 16px 24px;
+}
+.kanban-filter-title { display: flex; flex-direction: column; gap: 2px; }
+.kanban-headline {
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
+  color: var(--ink);
+  margin: 0;
+}
+.kanban-sub { font-size: 11px; color: var(--ink-muted); }
+.kanban-strip {
+  overflow-x: hidden;       /* KEIN horizontaler Overflow - alle Spalten teilen sich die Breite */
+  overflow-y: hidden;
+  padding: 0 12px 16px 12px;
+}
+.kanban-row {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  align-items: stretch;
+}
+.kanban-strip .kanban-col {
+  flex: 1 1 0;             /* gleiche Anteile am verfuegbaren Platz */
+  min-width: 0;            /* erlaubt Flex-Shrink unter Content-Breite */
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 220px);
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+.kanban-strip .kanban-col.drag-over {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 2px rgba(35,47,132,0.12), 0 6px 16px rgba(35,47,132,0.18);
+}
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border-soft);
+  background: rgba(127,127,127,0.04);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  min-height: 38px;
+}
+.kanban-col-header .badge {
+  font-size: 10px;
+  padding: 2px 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.kanban-col-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 200px;
+}
+.kanban-strip .kanban-card {
+  padding: 8px 10px;
+  font-size: 12px;
+}
+.kanban-strip .kanban-card .text-sm { font-size: 12px; line-height: 1.3; }
+.kanban-strip .kanban-card .text-xs { font-size: 10.5px; }
+/* Hidden scrollbar — funktioniert weiter, sieht aber sauber aus */
+.no-scrollbar {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE/Edge */
+}
+.no-scrollbar::-webkit-scrollbar { display: none; }  /* Chrome/Safari/Edge */
+
+/* Zusätzliche Badge-Farben fuer 9-Status-Pipeline */
+.badge-gewonnen   { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.badge-verloren   { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+html.dark .badge-gewonnen { background: rgba(16,185,129,0.22); color: #6ee7b7; border-color: rgba(16,185,129,0.5); }
+html.dark .badge-verloren { background: rgba(239,68,68,0.22); color: #fca5a5; border-color: rgba(239,68,68,0.5); }
+
+/* Auf sehr schmalen Screens (< 1100px) wird's mit 9 Spalten zu eng -> dann doch horizontaler Scroll als Fallback */
+@media (max-width: 1100px) {
+  .kanban-strip { overflow-x: auto; }
+  .kanban-row { width: max-content; min-width: 100%; }
+  .kanban-strip .kanban-col { flex: 0 0 200px; min-width: 200px; max-width: 200px; }
+}
+@media (max-width: 768px) {
+  .kanban-filter-bar { padding: 4px 12px 10px 12px; }
+  .kanban-strip { padding: 0 8px 10px 8px; }
+  .kanban-strip .kanban-col { flex: 0 0 220px; min-width: 220px; max-width: 220px; max-height: calc(100vh - 240px); }
+}
+
+/* === KALENDER: vollbreit, modern, schwebende semi-transparente Buttons === */
+.calendar-fullbleed {
+  position: relative;
+  width: calc(100vw - var(--sbw, 0px));
+  margin-left: calc((100% - 100vw + var(--sbw, 0px)) / 2);
+  padding: 16px 0 32px 0;
+  box-sizing: border-box;
+  max-width: calc(100vw - var(--sbw, 0px));
+}
+/* User-Color-Legende — UNTEN LINKS, kein Konflikt mit FC-Toolbar oben rechts */
+.calendar-legend-floating {
+  position: fixed;
+  bottom: 18px;
+  left: 18px;
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  background: rgba(255,255,255,0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.35);
+  border-radius: 10px;
+  padding: 5px 9px;
+  opacity: 0.55;
+  transition: opacity 200ms ease, background 200ms ease;
+  max-width: 50vw;
+}
+.calendar-legend-floating:hover { opacity: 1; background: rgba(255,255,255,0.9); }
+html.dark .calendar-legend-floating {
+  background: rgba(19,26,46,0.45);
+  border-color: rgba(255,255,255,0.08);
+}
+html.dark .calendar-legend-floating:hover { background: rgba(19,26,46,0.92); }
+
+/* FAB: Floating Action Button — "+ Termin" unten rechts, PROMINENT in Brand-Gold,
+   immer voll sichtbar (kein Transparenz-Default), klassischer Material-FAB-Look. */
+.calendar-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #FDB913 0%, #f59e0b 100%);
+  color: #232F84;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 16px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow:
+    0 10px 30px rgba(253,185,19,0.45),
+    0 4px 12px rgba(35,47,132,0.25),
+    inset 0 1px 0 rgba(255,255,255,0.4);
+  transition: transform 180ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 180ms ease, background 180ms ease;
+  letter-spacing: 0.2px;
+}
+.calendar-fab svg { flex-shrink: 0; stroke-width: 3; }
+.calendar-fab:hover {
+  background: linear-gradient(135deg, #FDB913 0%, #fbbf24 100%);
+  transform: translateY(-3px) scale(1.04);
+  box-shadow:
+    0 16px 40px rgba(253,185,19,0.55),
+    0 8px 18px rgba(35,47,132,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.5);
+}
+.calendar-fab:active { transform: translateY(-1px) scale(1.0); }
+.calendar-fab-label { letter-spacing: 0.4px; text-transform: none; }
+/* Dezenter Puls-Ring — macht den FAB sofort sichtbar */
+.calendar-fab::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 2px solid rgba(253,185,19,0.4);
+  pointer-events: none;
+  animation: fab-pulse 2.4s ease-out infinite;
+}
+@keyframes fab-pulse {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  70%  { transform: scale(1.15); opacity: 0;   }
+  100% { transform: scale(1.15); opacity: 0;   }
+}
+html.dark .calendar-fab {
+  box-shadow:
+    0 10px 30px rgba(253,185,19,0.35),
+    0 4px 12px rgba(0,0,0,0.4),
+    inset 0 1px 0 rgba(255,255,255,0.3);
+}
+.legend-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--ink-2);
+  background: transparent;
+}
+html.dark .legend-chip { color: rgba(255,255,255,0.85); }
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.calendar-modern {
+  padding: 0 12px;
+  min-height: calc(100vh - 200px);
+}
+/* FullCalendar-Modernisierung */
+.calendar-modern .fc {
+  --fc-border-color: rgba(127,127,127,0.12);
+  --fc-page-bg-color: transparent;
+  --fc-neutral-bg-color: transparent;
+  --fc-today-bg-color: rgba(253,185,19,0.05);
+  font-family: 'Roboto', Inter, ui-sans-serif, system-ui, sans-serif;
+}
+.calendar-modern .fc-toolbar.fc-header-toolbar {
+  margin-bottom: 16px;
+  padding: 0 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.calendar-modern .fc-toolbar-title {
+  font-size: 22px !important;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  color: var(--ink);
+}
+.calendar-modern .fc-button {
+  background: rgba(127,127,127,0.08) !important;
+  border: 1px solid rgba(127,127,127,0.15) !important;
+  color: var(--ink-2) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  box-shadow: none !important;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+.calendar-modern .fc-button:hover {
+  background: rgba(35,47,132,0.1) !important;
+  border-color: rgba(35,47,132,0.25) !important;
+}
+.calendar-modern .fc-button-primary:not(:disabled).fc-button-active,
+.calendar-modern .fc-button-primary:not(:disabled):active {
+  background: var(--brand) !important;
+  border-color: var(--brand) !important;
+  color: #fff !important;
+}
+.calendar-modern .fc-event {
+  border-radius: 6px !important;
+  border: none !important;
+  padding: 2px 6px !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  cursor: pointer;
+}
+.calendar-modern .fc-event:hover {
+  box-shadow: 0 4px 10px rgba(35,47,132,0.25);
+  transform: translateY(-1px);
+}
+.calendar-modern .fc-daygrid-day:hover { background: rgba(35,47,132,0.03); }
+.calendar-modern .fc-day-today { box-shadow: inset 0 0 0 2px rgba(253,185,19,0.35); }
+.calendar-modern .fc-col-header-cell {
+  background: transparent;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--ink-muted);
+  padding: 10px 0;
+}
+.calendar-modern .fc-scrollgrid { border: none !important; }
+.calendar-modern .fc-scrollgrid td, .calendar-modern .fc-scrollgrid th { border-color: rgba(127,127,127,0.08); }
+@media (max-width: 768px) {
+  .calendar-legend-floating { bottom: 80px; left: 10px; padding: 4px 8px; opacity: 0.85; max-width: calc(100vw - 20px); }
+  .calendar-fab { bottom: 16px; right: 16px; padding: 10px 14px; font-size: 13px; opacity: 0.9; }
+  .calendar-modern { padding: 0 8px; min-height: 500px; }
+  .calendar-modern .fc-toolbar-title { font-size: 18px !important; }
+}
+
+/* === BRAND-LOGO: Theme-abhaengiger Wechsel zwischen weiss/farbe === */
+.brand-logo-light { display: inline-block; }   /* Default = Light-Mode = farbiges Logo */
+.brand-logo-dark  { display: none; }
+html.dark .brand-logo-light { display: none; }
+html.dark .brand-logo-dark  { display: inline-block; }
+
+/* === 4. KOMPONENTEN-STYLES ======================================== */
+*, *::before, *::after { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; box-sizing: border-box; }
+[x-cloak] { display: none !important; }
+html, body { background: var(--bg); color: var(--ink); }
+body { font-family: 'Roboto', system-ui, sans-serif; min-height: 100vh; overflow-x: hidden; transition: background 0.2s, color 0.2s; }
+
+#bg-canvas { display: none; }
+
+/* Surface */
+.surface { background: var(--surface); border: 1px solid var(--border-soft); box-shadow: var(--shadow-card); border-radius: 8px; }
+.surface-light { background: var(--surface-2); border: 1px solid var(--border-soft); }
+.glow-border { position: relative; }
+.glow-border::before { content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px; background: linear-gradient(135deg, var(--brand) 0%, var(--accent) 100%); -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; pointer-events: none; opacity: 0.5; }
+
+.text-gradient { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-light) 60%, var(--accent) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; }
+
+/* Scrollbars */
+.scroll-area::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-area::-webkit-scrollbar-track { background: transparent; }
+.scroll-area::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 3px; }
+body::-webkit-scrollbar { width: 8px; }
+body::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+body::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb); border-radius: 4px; }
+
+/* Inputs / Selects / Textareas */
+.input, input[type="text"]:not(.input):not([class*="bg-"]), input[type="email"]:not(.input):not([class*="bg-"]),
+input[type="tel"]:not(.input):not([class*="bg-"]), input[type="number"]:not(.input):not([class*="bg-"]),
+input[type="date"]:not(.input):not([class*="bg-"]), input[type="datetime-local"]:not(.input):not([class*="bg-"]),
+input[type="password"]:not(.input):not([class*="bg-"]), input[type="search"]:not(.input):not([class*="bg-"]),
+textarea:not(.input):not([class*="bg-"]), select:not([class*="bg-"]) {
+  background: var(--input-bg); border: 1.5px solid var(--input-border); color: var(--ink);
+  transition: border-color 0.15s, box-shadow 0.15s; border-radius: 5px;
+}
+.input::placeholder, input::placeholder, textarea::placeholder { color: var(--ink-subtle); }
+.input:focus, input:focus, textarea:focus, select:focus {
+  outline: none; border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(35,47,132,0.15);
+}
+html.dark .input:focus, html.dark input:focus, html.dark textarea:focus, html.dark select:focus {
+  box-shadow: 0 0 0 3px rgba(253,185,19,0.25); border-color: var(--accent);
+}
+.input:disabled, input:disabled, textarea:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; background: var(--bg-softer); }
+
+/* Buttons */
+.btn-primary { background: var(--brand); color: white; font-weight: 600; transition: all 0.15s; border: 1px solid var(--brand); }
+.btn-primary:hover:not(:disabled) { background: var(--brand-dark); border-color: var(--brand-dark); transform: translateY(-1px); box-shadow: 0 6px 16px -6px rgba(35,47,132,0.4); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn-secondary { background: var(--surface); border: 1.5px solid var(--border); color: var(--brand); font-weight: 500; transition: all 0.15s; }
+.btn-secondary:hover { background: var(--bg-soft); border-color: var(--brand); }
+html.dark .btn-secondary { color: var(--accent); }
+.btn-ghost { background: transparent; border: 1.5px solid var(--border); color: var(--ink-3); transition: all 0.15s; }
+.btn-ghost:hover:not(:disabled) { background: var(--bg-soft); border-color: var(--brand); color: var(--brand); }
+html.dark .btn-ghost:hover:not(:disabled) { color: var(--accent); border-color: var(--accent); }
+.btn-danger { background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; transition: all 0.15s; }
+html.dark .btn-danger { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.4); color: #fca5a5; }
+.btn-danger:hover { background: #fecaca; }
+.btn-accent { background: var(--accent); color: var(--brand); font-weight: 700; transition: all 0.15s; border: 1px solid var(--accent); }
+.btn-accent:hover:not(:disabled) { background: var(--accent-dark); border-color: var(--accent-dark); }
+
+/* Tab pills */
+.tab-pill { color: var(--ink-subtle); transition: all 0.15s; position: relative; border-radius: 4px; }
+.tab-pill:hover { color: var(--brand); background: rgba(35,47,132,0.06); }
+html.dark .tab-pill:hover { color: var(--accent); background: rgba(253,185,19,0.08); }
+.tab-pill.active { color: var(--brand); font-weight: 600; }
+html.dark .tab-pill.active { color: var(--accent); }
+.tab-pill.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 3px; background: var(--accent); border-radius: 2px; }
+
+/* Cards */
+.card { background: var(--surface); border: 1px solid var(--border-soft); transition: all 0.2s; border-radius: 8px; box-shadow: var(--shadow-card); }
+.card:hover { border-color: var(--brand); transform: translateY(-1px); box-shadow: var(--shadow-hover); }
+html.dark .card:hover { border-color: var(--accent); }
+
+/* Stat tile — gelber Balken links */
+.stat-tile { background: var(--surface); border: 1px solid var(--border-soft); border-left: 4px solid var(--accent); border-radius: 6px; padding: 16px; transition: all 0.2s; position: relative; overflow: hidden; }
+.stat-tile:hover { border-color: var(--brand); border-left-color: var(--accent); transform: translateY(-2px); box-shadow: var(--shadow-hover); }
+html.dark .stat-tile:hover { border-color: var(--accent); }
+
+/* Table */
+table.data-table { min-width: 720px; border-collapse: separate; border-spacing: 0; }
+table.data-table tbody tr { transition: background 0.12s; cursor: pointer; }
+table.data-table tbody tr:hover { background: rgba(35,47,132,0.05); }
+html.dark table.data-table tbody tr:hover { background: rgba(253,185,19,0.06); }
+table.data-table thead th { background: var(--table-header-bg); color: var(--ink-muted); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; border-bottom: 2px solid var(--border); padding: 10px 12px; }
+table.data-table tbody td { border-bottom: 1px solid var(--border-soft); color: var(--ink-2); padding: 10px 12px; }
+
+/* Status badges */
+.badge { display: inline-flex; align-items: center; padding: 3px 9px; border-radius: 4px; font-size: 11px; font-weight: 600; letter-spacing: 0.02em; }
+.badge-neu { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+.badge-kontaktiert { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.badge-terminiert { background: #ddd6fe; color: #4c1d95; border: 1px solid #a78bfa; }
+.badge-terminiert-overdue { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+.badge-interessiert { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
+.badge-nicht_interessiert { background: var(--bg-softer); color: var(--ink-muted); border: 1px solid var(--border); }
+.badge-nicht_erreicht { background: #ffedd5; color: #9a3412; border: 1px solid #fdba74; }
+.badge-abgeschlossen { background: #ede9fe; color: #5b21b6; border: 1px solid #c4b5fd; }
+.badge-geantwortet { background: #cffafe; color: #155e75; border: 1px solid #67e8f9; }
+html.dark .badge-neu { background: rgba(245,158,11,0.18); color: #fcd34d; border-color: rgba(245,158,11,0.4); }
+html.dark .badge-kontaktiert { background: rgba(59,130,246,0.18); color: #93c5fd; border-color: rgba(59,130,246,0.4); }
+html.dark .badge-nicht_erreicht { background: rgba(249,115,22,0.18); color: #fdba74; border-color: rgba(249,115,22,0.4); }
+html.dark .badge-terminiert { background: rgba(139,92,246,0.22); color: #c4b5fd; border-color: rgba(139,92,246,0.5); }
+html.dark .badge-terminiert-overdue { background: rgba(239,68,68,0.22); color: #fca5a5; border-color: rgba(239,68,68,0.5); }
+html.dark .badge-interessiert { background: rgba(16,185,129,0.18); color: #6ee7b7; border-color: rgba(16,185,129,0.4); }
+html.dark .badge-abgeschlossen { background: rgba(139,92,246,0.18); color: #c4b5fd; border-color: rgba(139,92,246,0.4); }
+html.dark .badge-geantwortet { background: rgba(6,182,212,0.18); color: #67e8f9; border-color: rgba(6,182,212,0.4); }
+
+/* Modal */
+.modal-backdrop { background: var(--modal-backdrop); backdrop-filter: blur(4px); }
+.modal-content { background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-modal); border-radius: 12px; color: var(--ink); }
+
+/* Floating chat */
+.fab { position: fixed; bottom: 24px; right: 24px; z-index: 50; width: 56px; height: 56px; border-radius: 50%; background: var(--brand); color: white; box-shadow: 0 8px 24px -8px rgba(35,47,132,0.5); cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; }
+.fab:hover { transform: scale(1.05); background: var(--brand-dark); }
+.fab-panel { position: fixed; bottom: 96px; right: 24px; z-index: 49; width: min(90vw, 380px); height: min(80vh, 560px); background: var(--surface); border: 1px solid var(--border); border-radius: 12px; box-shadow: var(--shadow-modal); display: flex; flex-direction: column; overflow: hidden; }
+@media (max-width: 640px) { .fab { bottom: 16px; right: 16px; width: 52px; height: 52px; } .fab-panel { bottom: 80px; right: 16px; left: 16px; width: auto; max-height: calc(100vh - 110px); } }
+
+/* Kanban */
+.kanban-col { background: var(--bg-soft); border: 1.5px solid var(--border-soft); border-radius: 8px; min-width: 280px; max-width: 280px; }
+.kanban-card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: 6px; padding: 10px 12px; cursor: grab; transition: all 0.15s; user-select: none; box-shadow: var(--shadow-card); }
+.kanban-card:hover { border-color: var(--brand); transform: translateY(-1px); }
+.kanban-card.dragging { opacity: 0.4; cursor: grabbing; }
+.kanban-col.drag-over { background: rgba(253,185,19,0.1); border-color: var(--accent); }
+
+/* FullCalendar */
+.fc { font-family: inherit; --fc-border-color: var(--border-soft); --fc-page-bg-color: transparent; --fc-neutral-bg-color: var(--bg-soft); --fc-list-event-hover-bg-color: rgba(35,47,132,0.06); }
+.fc .fc-toolbar-title { color: var(--ink); font-weight: 700; }
+.fc .fc-button { background: var(--surface); border: 1.5px solid var(--border); color: var(--brand); padding: 0.4em 0.85em; font-weight: 500; }
+html.dark .fc .fc-button { color: var(--accent); }
+.fc .fc-button:hover, .fc .fc-button-active { background: var(--brand); border-color: var(--brand); color: white; }
+.fc-col-header-cell, .fc-list-day-cushion { background: var(--bg-soft) !important; color: var(--ink-muted) !important; }
+.fc-day-today { background: rgba(253,185,19,0.08) !important; }
+.fc-event { border: none !important; padding: 1px 4px; border-radius: 4px; cursor: pointer; background: var(--brand) !important; color: white !important; }
+
+/* Animations */
+@keyframes slideUp { from { transform: translateY(8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes pulse-glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(253,185,19,0.6); } 50% { box-shadow: 0 0 0 8px rgba(253,185,19,0); } }
+.animate-slide-up { animation: slideUp 0.18s ease-out; }
+.animate-fade-in { animation: fadeIn 0.3s ease-out; }
+.animate-pulse-glow { animation: pulse-glow 2s infinite; }
+
+.nav-scroll::-webkit-scrollbar { display: none; }
+.nav-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+.line-clamp-2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+.avatar { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; color: white; font-weight: 600; flex-shrink: 0; box-shadow: 0 2px 6px -2px rgba(0,0,0,0.15); }
+
+@media (max-width: 640px) {
+  .fc-toolbar.fc-header-toolbar { display: flex; flex-direction: column; gap: 0.5rem; }
+  .fc-toolbar-title { font-size: 1rem !important; }
+}
+
+/* Onboarding */
+.tour-overlay { position: fixed; inset: 0; z-index: 100; pointer-events: auto; background: rgba(15,23,42,0.7); backdrop-filter: blur(2px); }
+.tour-spotlight { position: fixed; z-index: 101; border-radius: 8px; pointer-events: none; box-shadow: 0 0 0 9999px rgba(15,23,42,0.7), 0 0 40px 4px rgba(253,185,19,0.5); transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); border: 2px solid var(--accent); animation: tour-pulse 2s infinite; }
+@keyframes tour-pulse { 0%, 100% { box-shadow: 0 0 0 9999px rgba(15,23,42,0.7), 0 0 40px 4px rgba(253,185,19,0.5); } 50% { box-shadow: 0 0 0 9999px rgba(15,23,42,0.7), 0 0 60px 12px rgba(253,185,19,0.7); } }
+.tour-card { position: fixed; z-index: 102; max-width: 380px; background: var(--surface); border: 1.5px solid var(--accent); box-shadow: var(--shadow-modal); border-radius: 12px; padding: 20px; color: var(--ink); }
+.tour-progress { display: flex; gap: 4px; margin-bottom: 12px; }
+.tour-progress-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-soft); transition: all 0.3s; }
+.tour-progress-dot.active { background: var(--accent); width: 24px; border-radius: 3px; }
+
+/* Hero Card — blau in beiden Modi, alle Texte zwangsweise hell */
+.hero-power { background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%); color: white; border-radius: 8px; padding: 16px; position: relative; overflow: hidden; }
+.hero-power::before { content: ""; position: absolute; top: -50%; right: -20%; width: 250px; height: 250px; background: radial-gradient(circle, rgba(253,185,19,0.25) 0%, transparent 70%); pointer-events: none; }
+.hero-power, .hero-power * { color: rgba(255,255,255,0.95); }
+.hero-power .text-ink-100, .hero-power h1, .hero-power h2, .hero-power h3 { color: #ffffff !important; }
+.hero-power .text-ink-300, .hero-power .text-ink-400, .hero-power .text-ink-500 { color: rgba(255,255,255,0.7) !important; }
+.hero-power .text-gradient { background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%) !important; -webkit-background-clip: text !important; background-clip: text !important; -webkit-text-fill-color: transparent !important; }
+.hero-power .badge { backdrop-filter: blur(4px); }
+
+/* Template-Chips im Mail-Compose — visuell pro Kategorie unterschieden */
+.tpl-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 8px;
+  font-size: 12px;
+  border: 1.5px solid transparent;
+  background: var(--surface);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.tpl-chip:hover { transform: translateY(-1px); box-shadow: 0 4px 12px -4px rgba(35,47,132,0.25); }
+.tpl-chip-neutral { border-color: var(--border-soft); }
+.tpl-chip-cyan    { border-color: rgba(6,182,212,0.3);   background: rgba(6,182,212,0.06); color: #0e7490; }
+.tpl-chip-blue    { border-color: rgba(35,47,132,0.35);  background: linear-gradient(135deg, rgba(35,47,132,0.08), rgba(35,47,132,0.02)); color: #232F84; }
+.tpl-chip-green   { border-color: rgba(16,185,129,0.35); background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02)); color: #065f46; }
+.tpl-chip-violet  { border-color: rgba(139,92,246,0.35); background: linear-gradient(135deg, rgba(139,92,246,0.08), rgba(139,92,246,0.02)); color: #6d28d9; }
+.tpl-chip-gold    { border-color: rgba(253,185,19,0.5);  background: linear-gradient(135deg, rgba(253,185,19,0.15), rgba(253,185,19,0.04)); color: #92400e; font-weight: 700; }
+.tpl-chip-active {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 3px rgba(35,47,132,0.15), 0 6px 16px -6px rgba(35,47,132,0.35);
+  border-color: var(--brand) !important;
+}
+html.dark .tpl-chip { background: var(--surface-2); color: var(--ink-2); }
+html.dark .tpl-chip-cyan    { color: #67e8f9; }
+html.dark .tpl-chip-blue    { color: #93c5fd; }
+html.dark .tpl-chip-green   { color: #6ee7b7; }
+html.dark .tpl-chip-violet  { color: #c4b5fd; }
+html.dark .tpl-chip-gold    { color: #fcd34d; }
+html.dark .tpl-chip-active  { box-shadow: 0 0 0 3px rgba(253,185,19,0.25), 0 6px 16px -6px rgba(0,0,0,0.5); border-color: var(--accent) !important; }
+
+/* Editier-Zonen in der Mail-Vorschau — klare visuelle Markierung */
+.email-canvas [data-edit-zone] {
+  transition: outline-color 0.15s, background-color 0.15s;
+}
+.email-canvas [data-edit-zone]:hover {
+  outline-color: rgba(253,185,19,0.7) !important;
+  background-color: rgba(253,185,19,0.1) !important;
+}
+.email-canvas [data-edit-zone]:focus {
+  outline: 2px solid #FDB913 !important;
+  background-color: rgba(253,185,19,0.12) !important;
+}
+
+/* Brand-Text-Helfer (Logo-Wortmarke) — flippt im Dark-Mode auf Gelb */
+.brand-text { color: var(--brand); }
+html.dark .brand-text { color: var(--accent); }
+
+/* Theme-Toggle-Button */
+.theme-toggle { width: 36px; height: 36px; border-radius: 8px; background: var(--bg-soft); border: 1.5px solid var(--border); color: var(--ink-3); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.theme-toggle:hover { background: var(--surface); border-color: var(--brand); color: var(--brand); }
+html.dark .theme-toggle:hover { color: var(--accent); border-color: var(--accent); }
+.theme-toggle .sun, html.dark .theme-toggle .moon { display: none; }
+.theme-toggle .moon { display: block; }
+html.dark .theme-toggle .sun { display: block; }
+
+/* === 5. TAILWIND-CLASS-OVERRIDES =================================== */
+/* Tailwind generiert text-ink-* / bg-ink-* mit FIXEN Hex-Werten — die werden
+   im Dark-Mode NICHT automatisch geflippt. Daher hier explizite Overrides. */
+
+/* Cyan/Brand-Highlights → Marke (theme-aware) */
+.text-cyan-300, .text-cyan-400, .text-cyan-500 { color: var(--brand) !important; }
+html.dark .text-cyan-300, html.dark .text-cyan-400, html.dark .text-cyan-500 { color: var(--accent) !important; }
+.text-cyan-300:hover, .hover\:text-cyan-300:hover, .hover\:text-cyan-200:hover { color: var(--brand-dark) !important; }
+.bg-cyan-500, .bg-cyan-400 { background-color: var(--brand) !important; }
+.border-cyan-400\/40, .border-cyan-400\/60 { border-color: var(--brand) !important; }
+.bg-cyan-400\/10, .bg-cyan-400\/20, .bg-cyan-400\/15 { background-color: rgba(35,47,132,0.08) !important; }
+html.dark .bg-cyan-400\/10, html.dark .bg-cyan-400\/20, html.dark .bg-cyan-400\/15 { background-color: rgba(253,185,19,0.1) !important; }
+.bg-brand-500\/5 { background-color: rgba(35,47,132,0.04) !important; }
+.bg-brand-500, .bg-brand-400 { background-color: var(--brand) !important; }
+.text-brand-400, .text-brand-500 { color: var(--brand) !important; }
+html.dark .text-brand-400, html.dark .text-brand-500 { color: var(--accent) !important; }
+
+/* Akzent-Farben (Emerald/Amber/Rose/Violet) — gemutet in beiden Modi */
+.text-emerald-300, .text-emerald-400 { color: #047857 !important; }
+.text-amber-300, .text-amber-400 { color: #b45309 !important; }
+.text-rose-300, .text-rose-400 { color: #be123c !important; }
+.text-violet-300, .text-violet-400 { color: #6d28d9 !important; }
+html.dark .text-emerald-300, html.dark .text-emerald-400 { color: #6ee7b7 !important; }
+html.dark .text-amber-300, html.dark .text-amber-400 { color: #fcd34d !important; }
+html.dark .text-rose-300, html.dark .text-rose-400 { color: #fca5a5 !important; }
+html.dark .text-violet-300, html.dark .text-violet-400 { color: #c4b5fd !important; }
+
+/* white-Surfaces -> theme-aware */
+.bg-white\/\[0\.02\], .bg-white\/\[0\.03\], .bg-white\/\[0\.05\] { background-color: var(--bg-soft) !important; }
+.hover\:bg-white\/\[0\.02\]:hover, .hover\:bg-white\/\[0\.05\]:hover { background-color: var(--bg-softer) !important; }
+.bg-white\/5 { background-color: var(--bg-soft) !important; }
+
+/* Border-overrides → theme-aware */
+.border-white\/\[0\.06\], .border-white\/\[0\.08\], .border-white\/\[0\.1\], .border-white\/10, .border-white\/20 { border-color: var(--border-soft) !important; }
+
+/* Ink-Skala im Dark-Mode invertieren */
+html.dark .text-ink-100, html.dark .text-ink-50 { color: #f1f5f9 !important; }
+html.dark .text-ink-200 { color: #e2e8f0 !important; }
+html.dark .text-ink-300 { color: #cbd5e1 !important; }
+html.dark .text-ink-400 { color: #94a3b8 !important; }
+html.dark .text-ink-500 { color: #64748b !important; }
+html.dark .text-ink-600 { color: #475569 !important; }
+
+html.dark .bg-ink-900, html.dark .bg-ink-950, html.dark .bg-ink-800 { background-color: var(--surface) !important; }
+html.dark .bg-obsidian-800, html.dark .bg-obsidian-900, html.dark .bg-obsidian-950 { background-color: var(--surface) !important; }
+
+/* Slate/Gray-Klassen im Dark-Mode */
+html.dark .text-slate-100, html.dark .text-slate-200, html.dark .text-gray-100, html.dark .text-gray-200 { color: #e2e8f0 !important; }
+html.dark .text-slate-300, html.dark .text-gray-300 { color: #cbd5e1 !important; }
+html.dark .text-slate-400, html.dark .text-gray-400 { color: #94a3b8 !important; }
+html.dark .text-slate-500, html.dark .text-gray-500 { color: #64748b !important; }
+
+html.dark .bg-white { background-color: var(--surface) !important; }
+html.dark .bg-gray-50, html.dark .bg-slate-50 { background-color: var(--bg-soft) !important; }
+html.dark .bg-gray-100, html.dark .bg-slate-100 { background-color: var(--bg-softer) !important; }

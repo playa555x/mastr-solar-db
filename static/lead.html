@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="lead.page_title"><span data-i18n="lead.page_title">Repowering DE — Modernisierung & Ankauf bestehender PV-Anlagen</span></title>
+  <meta name="description" content="Repowering steigert die Produktion bestehender PV-Anlagen um bis zu +118%. Datenbasierte Analyse aus dem deutschen Marktstammdatenregister. Faires Ankaufs-Angebot in 5 Werktagen.">
+  <meta name="robots" content="index,follow">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#232F84', dark: '#1a2466', light: '#3a4ab0' },
+            accent: { DEFAULT: '#FDB913', dark: '#e0a30b' },
+            ink: { DEFAULT: '#0a0a0a', soft: '#555', muted: '#999' },
+            soft: { DEFAULT: '#F0F9F9', cyan: '#88D1D1' },
+          },
+          fontFamily: { sans: ['Roboto','system-ui','sans-serif'] },
+          maxWidth: { 'page': '1280px' },
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body { font-family: 'Roboto', system-ui, sans-serif; background: #ffffff; color: #0a0a0a; }
+    /*
+      Feedgy-Signatur: weiße Treppen-Eckenausschnitte ueber farbigen Sektionen.
+      Wir legen die SVGs als after-Pseudoelement absolut ueber die obere/untere
+      Ecke einer farbigen Box. Sie sind weiss und schneiden so visuell in den
+      weissen Seitenhintergrund.
+    */
+    .stair-tr::after {
+      content: "";
+      position: absolute; top: 0; right: 0;
+      width: 261px; height: 151px;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="261" height="151" viewBox="0 0 261 151" fill="none"><path d="M0 0C87 0 174 0 261 0V151V82.0237C261 70.978 252.046 62.0237 241 62.0237H114.15C109.495 62.0237 104.986 60.3998 101.4 57.4319L37.5472 4.59174C33.9608 1.62386 29.4515 0 24.7963 0H0Z" fill="white"/></svg>');
+      background-repeat: no-repeat; pointer-events: none;
+    }
+    .stair-br::after {
+      content: "";
+      position: absolute; bottom: 0; right: 0;
+      width: 367px; height: 261px;
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="367" height="261" viewBox="0 0 367 261" fill="none"><path d="M0.100586 261C87.1006 261 280 261 367 261V0V12.0485C367 14.3038 366.365 16.5134 365.166 18.424L349.57 43.2943C348.871 44.4088 348.5 45.6978 348.5 47.0133V80.6152C348.5 82.1614 349.012 83.6641 349.956 84.8888L364.504 103.762C366.122 105.861 367 108.438 367 111.088V178.976C367 190.022 358.046 198.976 347 198.976H114.251C109.596 200.6 105.087 200.6 101.5 203.568L37.6478 256.408C34.0614 259.376 29.552 261 24.8969 261H0.100586Z" fill="white"/></svg>');
+      background-repeat: no-repeat; pointer-events: none;
+    }
+    .stair-bl::after {
+      content: "";
+      position: absolute; bottom: 0; left: 0;
+      width: 261px; height: 151px;
+      transform: scaleX(-1);
+      background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="261" height="151" viewBox="0 0 261 151" fill="none"><path d="M0 151C87 151 174 151 261 151V0V68.9763C261 80.022 252.046 88.9763 241 88.9763H114.15C109.495 88.9763 104.986 90.6002 101.4 93.5681L37.5472 146.408C33.9608 149.376 29.4515 151 24.7963 151H0Z" fill="white"/></svg>');
+      background-repeat: no-repeat; pointer-events: none;
+    }
+    .hero-bg {
+      background:
+        linear-gradient(180deg, rgba(35,47,132,0.78) 0%, rgba(35,47,132,0.55) 60%, rgba(35,47,132,0.85) 100%),
+        url('https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1800&q=80&auto=format') center/cover;
+    }
+    .btn-yellow { background: #FDB913; color: #232F84; font-weight: 700; transition: all .15s; }
+    .btn-yellow:hover { background: #ffc83a; transform: translateY(-1px); }
+    .lang-switch { display: inline-flex; gap: 4px; }
+    .lang-switch button { padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; cursor: pointer; border: none; }
+    .lang-switch button.active { background: #FDB913; color: #232F84; }
+    .btn-yellow:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .btn-blue { background: #232F84; color: white; font-weight: 700; transition: all .15s; }
+    .btn-blue:hover { background: #1a2466; }
+    .btn-outline-blue { border: 2px solid #232F84; color: #232F84; font-weight: 700; transition: all .15s; }
+    .btn-outline-blue:hover { background: #232F84; color: white; }
+    .yellow-underline { background-image: linear-gradient(180deg, transparent 65%, #FDB913 65%, #FDB913 95%, transparent 95%); padding: 0 2px; }
+    .hp-field { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
+    .radio-card { border: 2px solid #e5e7eb; transition: all .15s; cursor: pointer; }
+    input[type=radio]:checked + .radio-card { border-color: #232F84; background: #F0F9F9; }
+    .input-feedgy {
+      background: white; border: 1px solid #d1d5db; color: #0a0a0a;
+      transition: border-color .15s; padding: 0.75rem 1rem; border-radius: 4px; width: 100%;
+    }
+    .input-feedgy:focus { outline: none; border-color: #232F84; box-shadow: 0 0 0 3px rgba(35,47,132,0.1); }
+    .feature-card-img { aspect-ratio: 16/9; background-size: cover; background-position: center; }
+  </style>
+</head>
+<body class="font-sans antialiased">
+
+  <!-- ============ NAV ============ -->
+  <nav class="absolute top-0 inset-x-0 z-50">
+    <div class="max-w-page mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="/interesse" class="flex items-center gap-3 text-white">
+        <img src="/static/feedgy-logo-white.svg" alt="Feedgy" style="height:30px;width:auto;">
+        <span class="text-white/50">/</span>
+        <span class="text-xl font-bold tracking-tight">Repowering DE</span>
+      </a>
+      <div class="hidden md:flex gap-8 text-sm font-medium text-white">
+        <a href="#leistungen" class="hover:text-accent transition" data-i18n="check.nav.services">Leistungen</a>
+        <a href="#zahlen" class="hover:text-accent transition" data-i18n="check.nav.numbers">Zahlen</a>
+        <a href="#betreiber" class="hover:text-accent transition" data-i18n="check.nav.operator">Anlagenbetreiber</a>
+        <a href="#partner" class="hover:text-accent transition" data-i18n="check.nav.partner">Partner</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="lang-switch">
+          <button data-i18n-switch="de" onclick="window.__setLocale('de')">DE</button>
+          <button data-i18n-switch="en" onclick="window.__setLocale('en')">EN</button>
+          <button data-i18n-switch="fr" onclick="window.__setLocale('fr')">FR</button>
+        </div>
+        <a href="#betreiber" class="btn-yellow px-5 py-2.5 rounded text-sm" data-i18n="lead.cta.request">Anfrage stellen</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero-bg relative min-h-[640px] flex items-center pt-20">
+    <div class="max-w-page mx-auto px-6 py-20 w-full">
+      <div class="max-w-3xl">
+        <div class="inline-block px-3 py-1 mb-6 text-xs font-bold uppercase tracking-widest rounded bg-accent text-brand" data-i18n="lead.hero.badge">
+          Repowering &nbsp;·&nbsp; Ankauf &nbsp;·&nbsp; PV-Modernisierung
+        </div>
+        <h1 class="text-white text-5xl md:text-7xl font-black tracking-tight leading-[1.05] mb-6" data-i18n="lead.hero.h1"><span data-i18n="lead.hero.h1">
+          Ein neuer Horizont für Ihre PV-Anlage.
+        </span></h1>
+        <p class="text-white/90 text-lg md:text-xl leading-relaxed max-w-2xl mb-10 font-light" data-i18n="lead.hero.subtitle">
+          Wir geben bestehenden Solaranlagen in Deutschland eine zweite Lebenszeit —
+          durch Modernisierung mit moderner Hochleistungs-Technik oder durch fairen Ankauf.
+          Datenbasiert, direkt, auf Grundlage des kompletten Marktstammdatenregisters.
+        </p>
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a href="#betreiber" class="btn-yellow px-7 py-3.5 rounded text-base">Leistung bewerten lassen →</a>
+          <a href="#leistungen" class="border-2 border-white text-white font-bold px-7 py-3 rounded hover:bg-white hover:text-brand transition">Mehr erfahren</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ ZAHLEN-BAR ============ -->
+  <section id="zahlen" class="bg-white py-16 border-b border-gray-100">
+    <div class="max-w-page mx-auto px-6">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-gray-200">
+        <div class="bg-white p-8">
+          <div class="text-5xl md:text-6xl font-black text-brand tracking-tight">+118<span class="text-2xl text-accent-dark">%</span></div>
+          <div class="text-sm text-ink-soft mt-2 font-medium">Max. Produktionssteigerung nach Repowering</div>
+        </div>
+        <div class="bg-white p-8">
+          <div class="text-5xl md:text-6xl font-black text-brand tracking-tight">81<span class="text-2xl">.000+</span></div>
+          <div class="text-sm text-ink-soft mt-2 font-medium"><span data-i18n="lead.stats.plants_label">Deutsche PV-Anlagen in unserer Datenbasis</span></div>
+        </div>
+        <div class="bg-white p-8">
+          <div class="text-5xl md:text-6xl font-black text-brand tracking-tight">2<span class="text-2xl"><span data-i18n="appset.unit.days"> Tage</span></span></div>
+          <div class="text-sm text-ink-soft mt-2 font-medium">Bis zur kostenlosen Erst&shy;einsch&auml;tzung</div>
+        </div>
+        <div class="bg-white p-8">
+          <div class="text-5xl md:text-6xl font-black text-brand tracking-tight">20<span class="text-2xl"><span data-i18n="lead.stats.years"> Jahre</span></span></div>
+          <div class="text-sm text-ink-soft mt-2 font-medium"><span data-i18n="lead.stats.new_eeg">Neue EEG-Vergütung oder PPA</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LEISTUNGEN ============ -->
+  <section id="leistungen" class="bg-soft py-24">
+    <div class="max-w-page mx-auto px-6">
+      <div class="max-w-3xl mb-14">
+        <div class="text-xs font-bold uppercase tracking-widest text-brand mb-4">Unsere Leistungen</div>
+        <h2 class="text-4xl md:text-5xl font-black tracking-tight leading-tight text-brand"><span data-i18n="lead.services.title">
+          Was wir mit Ihrer bestehenden Anlage tun.
+        </span></h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-6">
+        <!-- Repowering -->
+        <article class="bg-white rounded-md overflow-hidden shadow-sm hover:shadow-lg transition flex flex-col">
+          <div class="feature-card-img" style="background-image: linear-gradient(180deg, rgba(35,47,132,0) 0%, rgba(35,47,132,0.3) 100%), url('https://images.unsplash.com/photo-1466611653911-95081537e5b7?w=900&q=80&auto=format');"></div>
+          <div class="p-7 flex-1 flex flex-col">
+            <div class="text-xs font-bold uppercase tracking-widest text-accent-dark mb-2">01 — Repowering</div>
+            <h3 class="text-2xl font-bold text-brand mb-3"><span data-i18n="lead.services.repowering">Modernisierung mit Hochleistungs-Technik</span></h3>
+            <p class="text-ink-soft text-sm leading-relaxed mb-5 flex-1" data-i18n="lead.services.repowering_desc">
+              Tausch alter 230 Wp-Module gegen moderne 450 Wp+ Panels. Bei gleicher Fl&auml;che
+              oft 2–3× mehr Leistung. Neuer Wechselrichter, optional Speicher und Direktvermarktung.
+            </p>
+            <ul class="space-y-2 text-sm text-ink">
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span><span data-i18n="lead.services.eeg_20y">Neue 20-Jahre EEG / PPA</span></li>
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span><span data-i18n="lead.services.recycling">Recycling alter Module</span></li>
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span><span data-i18n="lead.services.storage">Speicher-Nachrüstung</span></li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Ankauf -->
+        <article class="bg-white rounded-md overflow-hidden shadow-sm hover:shadow-lg transition flex flex-col">
+          <div class="feature-card-img" style="background-image: linear-gradient(180deg, rgba(35,47,132,0) 0%, rgba(35,47,132,0.3) 100%), url('https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?w=900&q=80&auto=format');"></div>
+          <div class="p-7 flex-1 flex flex-col">
+            <div class="text-xs font-bold uppercase tracking-widest text-accent-dark mb-2">02 — Ankauf</div>
+            <h3 class="text-2xl font-bold text-brand mb-3"><span data-i18n="lead.services.purchase">Fairer Cash-Wert für Ihre Anlage</span></h3>
+            <p class="text-ink-soft text-sm leading-relaxed mb-5 flex-1"><span data-i18n="lead.services.purchase_desc">
+              Sie wollen die Anlage nicht selbst betreiben oder haben sie geerbt? Faires
+              Cash-Angebot basierend auf Restlaufzeit, Standort, Modulzustand und EEG-Wert.
+            </span></p>
+            <ul class="space-y-2 text-sm text-ink">
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span>Angebot in 5 Werktagen</li>
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span><span data-i18n="lead.services.contracts">Übernahme laufender Verträge</span></li>
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span>Notarielle Abwicklung</li>
+            </ul>
+          </div>
+        </article>
+
+        <!-- Daten -->
+        <article class="bg-white rounded-md overflow-hidden shadow-sm hover:shadow-lg transition flex flex-col">
+          <div class="feature-card-img" style="background-image: linear-gradient(180deg, rgba(35,47,132,0) 0%, rgba(35,47,132,0.3) 100%), url('https://images.unsplash.com/photo-1559302504-64aae6ca6b6d?w=900&q=80&auto=format');"></div>
+          <div class="p-7 flex-1 flex flex-col">
+            <div class="text-xs font-bold uppercase tracking-widest text-accent-dark mb-2">03 — Datenanalyse</div>
+            <h3 class="text-2xl font-bold text-brand mb-3">Wir kennen jede Anlage in Deutschland</h3>
+            <p class="text-ink-soft text-sm leading-relaxed mb-5 flex-1"><span data-i18n="lead.services.data_desc">
+              Marktstammdatenregister, Satellitenbild-Verifikation und Vergleichswerte aus
+              unserem Bestand. Bevor wir anrufen, wissen wir was Ihre Anlage kann.
+            </span></p>
+            <ul class="space-y-2 text-sm text-ink">
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span>MaStR + Sat-Verifikation</li>
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span><span data-i18n="lead.services.comparison">Vergleich mit 81 000+ Anlagen</span></li>
+              <li class="flex gap-2"><span class="text-accent-dark font-bold">→</span>Konkrete Zahlen statt Floskeln</li>
+            </ul>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ BETREIBER-SEKTION (blau mit Treppen-Cutout) ============ -->
+  <section id="betreiber" class="relative overflow-hidden">
+    <!-- Blaue Sektion mit weißen Treppen-Eckenausschnitten — das Feedgy-Signature -->
+    <div class="bg-brand relative stair-tr stair-bl">
+      <div class="max-w-page mx-auto px-6 py-24 grid lg:grid-cols-12 gap-12">
+
+        <div class="lg:col-span-5 text-white">
+          <div class="text-xs font-bold uppercase tracking-widest text-accent mb-4"><span data-i18n="lead.form.section.operator">Für Anlagen-Betreiber</span></div>
+          <h2 class="text-4xl md:text-5xl font-black tracking-tight leading-tight mb-6">
+            Wir bewerten Ihre Anlage<br><span class="yellow-underline text-white"><span data-i18n="lead.form.free">kostenlos</span></span> in 2 Werktagen.
+          </h2>
+          <p class="text-white/85 leading-relaxed mb-10 font-light text-lg"><span data-i18n="lead.form.operator_intro">
+            Sie senden uns die Eckdaten — wir analysieren gegen das Marktstammdatenregister,
+            prüfen Modul-Generation, EEG-Laufzeit und aktuellen Wert. Dann Rückruf mit Klartext.
+          </span></p>
+          <div class="space-y-5">
+            <div class="flex gap-5">
+              <div class="text-3xl font-black text-accent shrink-0 leading-none">01</div>
+              <div>
+                <div class="font-bold mb-1"><span data-i18n="lead.form.send_keydata">Eckdaten senden</span></div>
+                <div class="text-sm text-white/70 leading-relaxed"><span data-i18n="lead.form.send_keydata_desc">Adresse, Leistung, Baujahr — oder Ihre MaStR-Nummer</span></div>
+              </div>
+            </div>
+            <div class="flex gap-5">
+              <div class="text-3xl font-black text-accent shrink-0 leading-none">02</div>
+              <div>
+                <div class="font-bold mb-1">Wir analysieren</div>
+                <div class="text-sm text-white/70 leading-relaxed">Datenbasis-Lookup, Satelliten-Check, Marktvergleich</div>
+              </div>
+            </div>
+            <div class="flex gap-5">
+              <div class="text-3xl font-black text-accent shrink-0 leading-none">03</div>
+              <div>
+                <div class="font-bold mb-1">Klartext-Empfehlung</div>
+                <div class="text-sm text-white/70 leading-relaxed">Rechnet sich Repowering? Ankaufs-Wert in EUR? Konkrete Zahlen.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 relative z-10">
+          <div class="bg-white rounded-md p-8 md:p-10 shadow-2xl">
+            <h3 class="text-2xl md:text-3xl font-black text-brand mb-1">Kostenlose Erstanalyse</h3>
+            <p class="text-ink-soft text-sm mb-8"><span data-i18n="lead.form.required_with">Pflichtfelder mit </span><span class="text-red-600">*</span></p>
+
+            <form id="form-betreiber" class="space-y-5">
+              <input type="hidden" name="lead_type" value="betreiber">
+              <div class="hp-field" aria-hidden="true">
+                <label><span data-i18n="lead.form.honeypot_website">Website (leer lassen)</span><input type="text" name="website_url" tabindex="-1" autocomplete="off"></label>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-ink uppercase tracking-wider mb-3">Was interessiert Sie? <span class="text-red-600">*</span></label>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <label>
+                    <input type="radio" name="interest" value="repowering" class="sr-only" required>
+                    <div class="radio-card rounded-md p-4 text-center bg-gray-50">
+                      <div class="text-sm font-bold text-brand">Repowering</div>
+                      <div class="text-xs text-ink-soft mt-0.5">Modernisierung</div>
+                    </div>
+                  </label>
+                  <label>
+                    <input type="radio" name="interest" value="ankauf" class="sr-only">
+                    <div class="radio-card rounded-md p-4 text-center bg-gray-50">
+                      <div class="text-sm font-bold text-brand">Ankauf</div>
+                      <div class="text-xs text-ink-soft mt-0.5">Sie verkaufen</div>
+                    </div>
+                  </label>
+                  <label>
+                    <input type="radio" name="interest" value="beides" class="sr-only">
+                    <div class="radio-card rounded-md p-4 text-center bg-gray-50">
+                      <div class="text-sm font-bold text-brand">Beratung</div>
+                      <div class="text-xs text-ink-soft mt-0.5"><span data-i18n="lead.form.both_check">Beides prüfen</span></div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-ink uppercase tracking-wider mb-2">Ihr Name <span class="text-red-600">*</span></label>
+                  <input type="text" name="name" required maxlength="120" class="input-feedgy">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-ink uppercase tracking-wider mb-2">Firma</label>
+                  <input type="text" name="firma" maxlength="200" class="input-feedgy">
+                </div>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-ink uppercase tracking-wider mb-2">E-Mail <span class="text-red-600">*</span></label>
+                  <input type="email" name="email" required maxlength="200" class="input-feedgy" autocomplete="email">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-ink uppercase tracking-wider mb-2"><span data-i18n="appset.firma_telefon.label">Telefon</span></label>
+                  <input type="tel" name="telefon" maxlength="50" class="input-feedgy" autocomplete="tel">
+                </div>
+              </div>
+
+              <div class="pt-4 border-t border-gray-200">
+                <p class="text-xs font-bold text-ink uppercase tracking-wider mb-3">Angaben zur Anlage</p>
+                <div class="grid sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block text-xs text-ink-soft mb-1.5">PLZ</label>
+                    <input type="text" name="plz" maxlength="10" inputmode="numeric" pattern="[0-9]*" class="input-feedgy" autocomplete="postal-code">
+                  </div>
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs text-ink-soft mb-1.5"><span data-i18n="check.field.city">Ort</span></label>
+                    <input type="text" name="ort" maxlength="120" class="input-feedgy">
+                  </div>
+                </div>
+                <div class="grid sm:grid-cols-3 gap-3 mt-3">
+                  <div>
+                    <label class="block text-xs text-ink-soft mb-1.5">Leistung (kWp)</label>
+                    <input type="number" name="anlagen_leistung_kwp" step="0.1" min="0" max="100000" class="input-feedgy" placeholder="9.8">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-ink-soft mb-1.5">Baujahr</label>
+                    <input type="number" name="inbetriebnahme_jahr" min="1990" max="2030" class="input-feedgy" placeholder="2009">
+                  </div>
+                  <div>
+                    <label class="block text-xs text-ink-soft mb-1.5">MaStR-Nr.</label>
+                    <input type="text" name="mastr_nummer" maxlength="30" class="input-feedgy font-mono" placeholder="SEE…">
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-ink uppercase tracking-wider mb-2"><span data-i18n="lead.form.field.message_optional">Nachricht (optional)</span></label>
+                <textarea name="nachricht" rows="3" maxlength="4000" class="input-feedgy" placeholder="Anlass: EEG-Auslauf, Modulschäden, Erbschaft …" data-i18n-placeholder="lead.form.field.occasion"></textarea>
+              </div>
+
+              <div class="flex items-start gap-3 pt-2">
+                <input type="checkbox" id="dsgvo-b" required class="mt-1 w-4 h-4 accent-brand">
+                <label for="dsgvo-b" class="text-xs text-ink-soft leading-relaxed"><span data-i18n="lead.form.gdpr_operator">
+                  Ich bin damit einverstanden, dass meine Angaben gespeichert werden. Keine Weitergabe an Dritte. Details im </span><a href="/datenschutz" class="text-brand font-medium hover:underline">Datenschutz</a>.
+                </label>
+              </div>
+
+              <button type="submit" class="btn-yellow w-full py-3.5 rounded text-base mt-2">Kostenlose Analyse anfordern →</button>
+              <div id="form-betreiber-result" class="hidden text-center py-4 px-4 rounded-md"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PARTNER-SEKTION (weiß) ============ -->
+  <section id="partner" class="bg-white py-24">
+    <div class="max-w-page mx-auto px-6">
+      <div class="grid lg:grid-cols-12 gap-12 items-start">
+        <div class="lg:col-span-5">
+          <div class="text-xs font-bold uppercase tracking-widest text-brand mb-4"><span data-i18n="lead.form.section.partner">Für Installateure & SHK-Betriebe</span></div>
+          <h2 class="text-4xl md:text-5xl font-black tracking-tight leading-tight text-brand mb-6">
+            Werden Sie <span class="yellow-underline">Partner.</span>
+          </h2>
+          <p class="text-ink-soft leading-relaxed mb-8 text-lg font-light" data-i18n="lead.form.partner_intro">
+            Sie suchen vorqualifizierte Repowering-Leads für Ihre Region? Zugang zu unserer
+            Plattform — 81 000+ Anlagen aus dem Marktstammdatenregister, filterbar nach
+            Region, Leistung, Inbetriebnahme.
+          </p>
+
+          <div class="grid sm:grid-cols-2 gap-4">
+            <div class="bg-soft rounded-md p-5 border-l-4 border-accent">
+              <div class="text-xs uppercase tracking-wider font-bold text-brand mb-3">Was Sie bekommen</div>
+              <ul class="space-y-1.5 text-sm text-ink">
+                <li><span data-i18n="lead.form.partner.full_access">✓ Vollständiger MaStR-Zugriff</span></li>
+                <li>✓ CRM + Lead-Scoring</li>
+                <li>✓ API-Anbindung</li>
+              </ul>
+            </div>
+            <div class="bg-soft rounded-md p-5 border-l-4 border-brand">
+              <div class="text-xs uppercase tracking-wider font-bold text-brand mb-3">Was wir erwarten</div>
+              <ul class="space-y-1.5 text-sm text-ink">
+                <li>✓ Eingetragener Fachbetrieb</li>
+                <li><span data-i18n="lead.form.partner.min_appointments">✓ Min. 5 Termine / Monat</span></li>
+                <li>✓ Saubere Lead-Pflege</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7">
+          <div class="bg-soft border border-gray-200 rounded-md p-8 md:p-10">
+            <h3 class="text-2xl md:text-3xl font-black text-brand mb-1">Partner-Anfrage</h3>
+            <p class="text-ink-soft text-sm mb-8">Wir melden uns binnen 3 Werktagen.</p>
+
+            <form id="form-partner" class="space-y-5">
+              <input type="hidden" name="lead_type" value="partner">
+              <input type="hidden" name="interest" value="partnerschaft">
+              <div class="hp-field" aria-hidden="true">
+                <label><span data-i18n="lead.form.honeypot_webseite">Webseite (leer lassen)</span><input type="text" name="website_url" tabindex="-1" autocomplete="off"></label>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-ink mb-2">Firma <span class="text-red-600">*</span></label>
+                  <input type="text" name="firma" required maxlength="200" class="input-feedgy">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-ink mb-2">Ihr Name <span class="text-red-600">*</span></label>
+                  <input type="text" name="name" required maxlength="120" class="input-feedgy">
+                </div>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-ink mb-2">E-Mail <span class="text-red-600">*</span></label>
+                  <input type="email" name="email" required maxlength="200" class="input-feedgy" autocomplete="email">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-ink mb-2"><span data-i18n="appset.firma_telefon.label">Telefon</span></label>
+                  <input type="tel" name="telefon" maxlength="50" class="input-feedgy" autocomplete="tel">
+                </div>
+              </div>
+
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-ink mb-2"><span data-i18n="lead.form.partner.field.area">PLZ Einzugsgebiet</span></label>
+                  <input type="text" name="plz" maxlength="10" class="input-feedgy">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold uppercase tracking-wider text-ink mb-2"><span data-i18n="lead.form.partner.field.city">Stadt / Region</span></label>
+                  <input type="text" name="ort" maxlength="120" class="input-feedgy">
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-ink mb-2"><span data-i18n="lead.form.partner.field.about">Über Ihren Betrieb</span></label>
+                <textarea name="nachricht" rows="3" maxlength="4000" class="input-feedgy" placeholder="Mitarbeiterzahl, Spezialisierung, durchschnittliche kWp / Monat …" data-i18n-placeholder="lead.form.partner.field.about_hint"></textarea>
+              </div>
+
+              <div class="flex items-start gap-3 pt-2">
+                <input type="checkbox" id="dsgvo-p" required class="mt-1 w-4 h-4 accent-brand">
+                <label for="dsgvo-p" class="text-xs text-ink-soft leading-relaxed"><span data-i18n="lead.form.partner.gdpr">
+                  Ich stimme der Speicherung meiner Angaben zu. Keine Weitergabe an Dritte.
+                </span></label>
+              </div>
+
+              <button type="submit" class="btn-blue w-full py-3.5 rounded text-base"><span data-i18n="lead.form.partner.submit">Partner-Anfrage senden →</span></button>
+              <div id="form-partner-result" class="hidden text-center py-4 px-4 rounded-md"></div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer id="kontakt" class="bg-brand text-white py-16">
+    <div class="max-w-page mx-auto px-6">
+      <div class="grid md:grid-cols-4 gap-10 mb-10">
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-3 mb-4">
+            <img src="/static/feedgy-logo-white.svg" alt="Feedgy" style="height:30px;width:auto;">
+            <span class="text-white/50">/</span>
+            <span class="text-xl font-bold tracking-tight">Repowering DE</span>
+          </div>
+          <p class="text-sm text-white/70 max-w-md leading-relaxed font-light"><span data-i18n="check.footer.tagline">
+            Spezialisten für Repowering und Ankauf bestehender PV-Anlagen in Deutschland.
+            Datenbasierte Bewertung auf Grundlage des kompletten Marktstammdatenregisters.
+          </span></p>
+        </div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-accent mb-4">Kontakt</div>
+          <div class="text-sm text-white/70 space-y-1">
+            <p><span data-i18n="lead.footer.kontakt">Bitte nutzen Sie das Anfrage-Formular oben.</span></p>
+            <p><a href="/" class="hover:text-accent transition">Team-Login</a></p>
+          </div>
+        </div>
+        <div id="datenschutz">
+          <div class="text-xs font-bold uppercase tracking-wider text-accent mb-4">Datenschutz</div>
+          <p class="text-xs text-white/60 leading-relaxed font-light"><span data-i18n="lead.footer.gdpr">
+            Ihre Angaben werden ausschließlich zur Bearbeitung Ihrer Anfrage verwendet
+            (DSGVO Art. 6 (1)(b)). Keine Weitergabe. Löschung jederzeit per E-Mail.
+          </span></p>
+        </div>
+      </div>
+      <div class="pt-8 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3">
+        <div class="text-xs text-white/40">© <span id="year"></span> Repowering DE — Repowering &amp; Ankauf</div>
+        <div class="text-xs text-white/70 flex gap-4">
+          <a href="/impressum" class="hover:text-accent" data-i18n="footer.legal_imprint">Impressum</a>
+          <a href="/datenschutz" class="hover:text-accent" data-i18n="footer.legal_privacy">Datenschutz</a>
+          <a href="/check" class="hover:text-accent" data-i18n="lead.footer.check"><span data-i18n="check.footer.plant_check">Anlagen-Check</span></a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    function renderResult(box, status, ticket, errorMsg) {
+      box.replaceChildren();
+      if (status === "success") {
+        box.className = "block text-center py-5 px-4 rounded-md bg-soft border-2 border-brand text-brand";
+        const t = document.createElement("div");
+        t.className = "font-bold text-base mb-1";
+        t.textContent = "Vielen Dank!";
+        const s = document.createElement("div");
+        s.className = "text-sm";
+        s.textContent = "Wir melden uns innerhalb von 2 Werktagen.";
+        const c = document.createElement("div");
+        c.className = "text-xs mt-1 opacity-70";
+        c.appendChild(document.createTextNode("Ticket-Nr.: "));
+        const code = document.createElement("span");
+        code.className = "font-mono";
+        code.textContent = ticket || "—";
+        c.appendChild(code);
+        box.append(t, s, c);
+      } else {
+        box.className = "block text-center py-4 px-4 rounded-md bg-red-50 border border-red-300 text-red-700";
+        const m = document.createElement("div");
+        m.className = "font-medium text-sm";
+        m.textContent = errorMsg || "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.";
+        box.appendChild(m);
+      }
+    }
+
+    function handleForm(formId, resultId) {
+      const form = document.getElementById(formId);
+      const result = document.getElementById(resultId);
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = form.querySelector("button[type=submit]");
+        const original = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Wird gesendet …";
+        result.className = "hidden";
+
+        const fd = new FormData(form);
+        const payload = {};
+        for (const [k, v] of fd.entries()) payload[k] = v;
+
+        try {
+          const r = await fetch("/api/public/leads", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const data = await r.json().catch(() => ({}));
+          if (r.ok && data.success) {
+            renderResult(result, "success", data.ticket);
+            form.reset();
+            result.scrollIntoView({ behavior: "smooth", block: "center" });
+          } else {
+            renderResult(result, "error", null, data.error || data.message);
+          }
+        } catch {
+          renderResult(result, "error", null, "Netzwerk-Fehler. Bitte später erneut versuchen.");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = original;
+        }
+      });
+    }
+
+    handleForm("form-betreiber", "form-betreiber-result");
+    handleForm("form-partner", "form-partner-result");
+  </script>
+  <script src="/static/locales-vanilla.js"></script>
+</body>
+</html>

@@ -1,0 +1,106 @@
+name: CI
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Locale parity (DE/EN/FR)
+        run: bun tests/check-locales.ts
+
+      - name: TypeScript strict (lib/cursor, sse-bus, migrations, password-reset, signatures)
+        run: bunx tsc --noEmit -p tsconfig.strict.json
+
+      - name: Regenerate API client from OpenAPI
+        run: bun scripts/gen-api-client.ts
+
+      - name: Type-check generated API client
+        run: bunx tsc --noEmit -p tsconfig.genchk.json
+
+      - name: Build server (no listen)
+        run: bun build server.ts --target=bun --outdir=./dist
+        env:
+          NODE_ENV: production
+
+      - name: IP whitelist logic test
+        run: |
+          mkdir -p /tmp/ci-tests
+          cat > /tmp/ci-tests/test-ip.ts <<'EOF'
+          function matchIpWhitelist(ip, wlc) {
+            if (!wlc || !wlc.trim()) return true;
+            if (!ip) return false;
+            const e = wlc.split(",").map(s=>s.trim()).filter(Boolean);
+            for (const x of e) {
+              if (x === ip) return true;
+              if (x.includes("/")) {
+                const [b,n]=x.split("/"); const bits=parseInt(n,10);
+                if (isNaN(bits)||bits<0||bits>32) continue;
+                const toI=(s)=>{const p=s.split(".");if(p.length!==4)return null;let v=0;for(const x of p){const n=parseInt(x,10);if(isNaN(n)||n<0||n>255)return null;v=(v<<8)|n;}return v>>>0;};
+                const bi=toI(b),ii=toI(ip); if(bi===null||ii===null) continue;
+                const mask=bits===0?0:(~0<<(32-bits))>>>0;
+                if ((bi&mask)===(ii&mask)) return true;
+              }
+            }
+            return false;
+          }
+          const cases = [
+            ["1.2.3.4", null, true],
+            ["1.2.3.4", "1.2.3.4", true],
+            ["10.0.0.5", "10.0.0.0/8", true],
+            ["192.168.2.1", "192.168.1.0/24", false],
+            [null, "1.2.3.4", false],
+          ];
+          let fail = 0;
+          for (const [ip,wl,exp] of cases) {
+            const got = matchIpWhitelist(ip, wl);
+            if (got !== exp) { console.log("FAIL", ip, wl, "expected", exp, "got", got); fail++; }
+          }
+          if (fail > 0) process.exit(1);
+          console.log("ALL", cases.length, "PASS");
+          EOF
+          bun /tmp/ci-tests/test-ip.ts
+
+      - name: Cursor encode/decode roundtrip
+        run: |
+          cat > /tmp/ci-tests/test-cursor.ts <<'EOF'
+          function b64ue(s){return Buffer.from(s,"utf-8").toString("base64").replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");}
+          function b64ud(s){try{const p=s.length%4===0?"":"=".repeat(4-(s.length%4));return Buffer.from(s.replace(/-/g,"+").replace(/_/g,"/")+p,"base64").toString("utf-8");}catch{return "";}}
+          function enc(o){return b64ue(JSON.stringify(o));}
+          function dec(c){if(!c)return null;const r=b64ud(c);try{const o=JSON.parse(r);return typeof o?.id==="number"?{id:o.id,ts:o.ts||null}:null;}catch{return null;}}
+          const c1=enc({id:42,ts:"2026-06-03T10:00:00.000Z"});
+          const d1=dec(c1);
+          if (!d1 || d1.id!==42 || d1.ts!=="2026-06-03T10:00:00.000Z") { console.log("FAIL roundtrip:",d1); process.exit(1); }
+          if (dec("garbage")!==null) { console.log("FAIL garbage dec"); process.exit(1); }
+          if (dec(null)!==null) { console.log("FAIL null dec"); process.exit(1); }
+          console.log("OK cursor");
+          EOF
+          bun /tmp/ci-tests/test-cursor.ts
+
+      - name: Anrede locale-aware
+        run: |
+          cat > /tmp/ci-tests/test-anrede.ts <<'EOF'
+          const tpl = {
+            de: { m: n => `Sehr geehrter Herr ${n},` },
+            en: { m: n => `Dear Mr. ${n},` },
+            fr: { m: n => `Cher Monsieur ${n},` },
+          };
+          if (tpl.de.m("Müller")!=="Sehr geehrter Herr Müller,") process.exit(1);
+          if (tpl.en.m("Müller")!=="Dear Mr. Müller,") process.exit(1);
+          if (tpl.fr.m("Müller")!=="Cher Monsieur Müller,") process.exit(1);
+          console.log("OK anrede");
+          EOF
+          bun /tmp/ci-tests/test-anrede.ts

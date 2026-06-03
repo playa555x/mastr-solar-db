@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seite nicht gefunden — {{firma_name}}</title>
+  <meta name="robots" content="noindex">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: { brand: '#232F84', accent: '#FDB913', ink: '#0a0a0a', soft: '#F0F9F9' },
+      fontFamily: { sans: ['Roboto','system-ui','sans-serif'] },
+      maxWidth: { 'page': '1280px' },
+    } } }
+  </script>
+  <style>
+    html, body { font-family: 'Roboto', system-ui, sans-serif; background: #ffffff; color: #0a0a0a; }
+    .hero-bg { background: linear-gradient(180deg, rgba(35,47,132,0.95) 0%, rgba(35,47,132,0.85) 100%), url('https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1800&q=80&auto=format') center/cover; }
+    .btn-yellow { background: #FDB913; color: #232F84; font-weight: 700; transition: all .15s; }
+    .btn-yellow:hover { background: #ffc83a; transform: translateY(-1px); }
+    .btn-outline-white { border: 2px solid white; color: white; font-weight: 700; transition: all .15s; }
+    .btn-outline-white:hover { background: white; color: #232F84; }
+    .digit-404 { font-size: clamp(120px, 22vw, 240px); line-height: 1; font-weight: 900; background: linear-gradient(135deg, #FDB913 0%, #88D1D1 100%); -webkit-background-clip: text; background-clip: text; color: transparent; letter-spacing: -0.04em; }
+  </style>
+</head>
+<body class="font-sans antialiased">
+  <nav class="absolute top-0 inset-x-0 z-50">
+    <div class="max-w-page mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="/interesse" class="flex items-center gap-3 text-white">
+        <img src="/static/feedgy-logo-white.svg" alt="Feedgy" style="height:30px;width:auto;">
+        <span class="text-white/50">/</span>
+        <span class="text-xl font-bold tracking-tight">{{firma_name}}</span>
+      </a>
+      <a href="/interesse" class="btn-yellow px-5 py-2.5 rounded text-sm">Zur Startseite</a>
+    </div>
+  </nav>
+
+  <main class="hero-bg min-h-screen flex items-center pt-20">
+    <div class="max-w-page mx-auto px-6 py-16 w-full text-center">
+      <div class="digit-404 mb-2">404</div>
+      <h1 class="text-3xl md:text-4xl font-bold text-white mb-4">Diese Seite gibt es nicht.</h1>
+      <p class="text-white/85 text-lg max-w-xl mx-auto font-light mb-10">
+        Vielleicht ist der Link veraltet oder du hast dich verlaufen. Hier ein paar Wege zurück:
+      </p>
+      <div class="flex flex-wrap gap-3 justify-center mb-12">
+        <a href="/interesse" class="btn-yellow px-6 py-3 rounded">🏠 Startseite</a>
+        <a href="/check" class="btn-outline-white px-6 py-3 rounded">✓ Anlagen-Check</a>
+        <a href="/impressum" class="btn-outline-white px-6 py-3 rounded">Impressum</a>
+        <a href="/datenschutz" class="btn-outline-white px-6 py-3 rounded">Datenschutz</a>
+      </div>
+      <p class="text-white/60 text-xs">
+        Wenn du der Meinung bist, dass der Link eigentlich existieren sollte: kurze Mail an <a href="mailto:{{firma_email}}" class="text-accent hover:underline">{{firma_email}}</a> und wir kümmern uns.
+      </p>
+    </div>
+  </main>
+</body>
+</html>

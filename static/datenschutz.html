@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="datenschutz.page_title">Datenschutzerklärung — {{firma_name}}</title>
+  <meta name="robots" content="index,follow">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: { brand: '#232F84', accent: '#FDB913', ink: '#0a0a0a', soft: '#F0F9F9' },
+      fontFamily: { sans: ['Roboto','system-ui','sans-serif'] },
+      maxWidth: { 'page': '1280px' },
+    } } }
+  </script>
+  <style>
+    html, body { font-family: 'Roboto', system-ui, sans-serif; background: #ffffff; color: #0a0a0a; }
+    .hero-bg { background: linear-gradient(180deg, rgba(35,47,132,0.92) 0%, rgba(35,47,132,0.75) 100%), url('https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1800&q=80&auto=format') center/cover; }
+    .btn-yellow { background: #FDB913; color: #232F84; font-weight: 700; transition: all .15s; }
+    .btn-yellow:hover { background: #ffc83a; }
+    .lang-switch { display: inline-flex; gap: 4px; }
+    .lang-switch button { padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; cursor: pointer; border: none; }
+    .lang-switch button.active { background: #FDB913; color: #232F84; }
+    .legal-section h2 { font-size: 22px; font-weight: 700; color: #232F84; margin-top: 36px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #FDB913; display: inline-block; }
+    .legal-section h3 { font-size: 17px; font-weight: 700; color: #232F84; margin-top: 24px; margin-bottom: 8px; }
+    .legal-section p { color: #444; line-height: 1.7; font-size: 15px; margin-bottom: 12px; }
+    .legal-section a { color: #232F84; text-decoration: underline; }
+    .legal-section a:hover { color: #1a2466; }
+    .legal-section ul { list-style: disc; padding-left: 24px; color: #444; line-height: 1.7; font-size: 15px; margin-bottom: 14px; }
+    .legal-section ul li { margin-bottom: 6px; }
+    .toc { background: #F0F9F9; border: 1px solid #88D1D1; border-radius: 12px; padding: 20px 24px; margin-bottom: 32px; }
+    .toc h3 { color: #232F84; font-weight: 700; margin-bottom: 10px; text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; }
+    .toc ol { list-style: decimal; padding-left: 22px; font-size: 14px; line-height: 1.8; }
+    .toc a { color: #232F84; text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+    @media (max-width: 767px) {
+      h1 { font-size: 28px !important; }
+      header.hero-bg { min-height: 220px !important; }
+      .legal-section h2 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body class="font-sans antialiased">
+
+  <nav class="absolute top-0 inset-x-0 z-50">
+    <div class="max-w-page mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="/interesse" class="flex items-center gap-3 text-white">
+        <img src="/static/feedgy-logo-white.svg" alt="Feedgy" style="height:30px;width:auto;">
+        <span class="text-white/50">/</span>
+        <span class="text-xl font-bold tracking-tight">{{firma_name}}</span>
+      </a>
+      <div class="flex items-center gap-3">
+        <div class="lang-switch">
+          <button data-i18n-switch="de" onclick="window.__setLocale('de')">DE</button>
+          <button data-i18n-switch="en" onclick="window.__setLocale('en')">EN</button>
+          <button data-i18n-switch="fr" onclick="window.__setLocale('fr')">FR</button>
+        </div>
+        <a href="/interesse" class="btn-yellow px-5 py-2.5 rounded text-sm" data-i18n="nav.to_homepage">Zur Startseite</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero-bg relative min-h-[280px] flex items-center pt-20">
+    <div class="max-w-page mx-auto px-6 py-12 w-full">
+      <h1 class="text-3xl md:text-5xl font-bold text-white leading-tight" data-i18n="datenschutz.h1">Datenschutzerklärung</h1>
+      <p class="text-white/85 mt-3 font-light" data-i18n="datenschutz.subtitle">Informationen zur Verarbeitung personenbezogener Daten nach Art. 13 DSGVO</p>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-6 py-14 legal-section">
+
+    <div style="background:#FFF7E6;border-left:3px solid #FDB913;padding:14px 18px;border-radius:0 6px 6px 0;margin:0 0 22px 0;">
+      <p style="margin:0;color:#444;font-size:14px;line-height:1.55;" data-i18n="legal.binding_note">Die deutsche Fassung dieses Dokuments ist rechtlich verbindlich. Die EN/FR-Übersetzung dient ausschließlich der Information.</p>
+    </div>
+
+    <div class="toc">
+      <h3 data-i18n="datenschutz.toc.title">Inhaltsverzeichnis</h3>
+      <ol>
+        <li><a href="#verantwortlich" data-i18n="datenschutz.toc.1">Verantwortlicher</a></li>
+        <li><a href="#allgemein" data-i18n="datenschutz.toc.2">Allgemeine Hinweise</a></li>
+        <li><a href="#serverlog" data-i18n="datenschutz.toc.3">Server-Log-Dateien</a></li>
+        <li><a href="#formular" data-i18n="datenschutz.toc.4">Kontakt- und Anfrageformulare</a></li>
+        <li><a href="#zoho" data-i18n="datenschutz.toc.5">Zoho Forms (Drittanbieter)</a></li>
+        <li><a href="#cookies" data-i18n="datenschutz.toc.6">Cookies &amp; Sessions</a></li>
+        <li><a href="#email" data-i18n="datenschutz.toc.7">E-Mail-Kontakt</a></li>
+        <li><a href="#tracking" data-i18n="datenschutz.toc.8">Tracking-Pixel in unseren E-Mails</a></li>
+        <li><a href="#rechte" data-i18n="datenschutz.toc.9">Ihre Rechte</a></li>
+        <li><a href="#beschwerde" data-i18n="datenschutz.toc.10">Beschwerderecht bei der Aufsichtsbehörde</a></li>
+        <li><a href="#aenderung" data-i18n="datenschutz.toc.11">Änderung dieser Datenschutzerklärung</a></li>
+      </ol>
+    </div>
+
+    <h2 id="verantwortlich" data-i18n="datenschutz.h2.1">1. Verantwortlicher</h2>
+    <p>Verantwortlich für die Verarbeitung personenbezogener Daten im Sinne von Art. 4 Nr. 7 DSGVO ist:</p>
+    <p>
+      <strong>{{firma_name}}</strong><br>
+      {{firma_adresse}}<br>
+      Telefon: {{firma_telefon}}<br>
+      E-Mail: <a href="mailto:{{firma_email}}">{{firma_email}}</a>
+    </p>
+    <p style="background:#F0F9F9;border-left:3px solid #232F84;padding:14px 18px;border-radius:0 6px 6px 0;margin:14px 0;color:#1f2937;font-size:14.5px;line-height:1.6;">
+      <strong>Hinweis:</strong> Der Verantwortliche ist in Frankreich ansässig. Da die EU-Datenschutz-Grundverordnung (DSGVO) europaweit
+      einheitlich gilt, haben Sie als betroffene Person dieselben Rechte wie bei einem deutschen Verantwortlichen. Ein Vertreter im Sinne
+      von Art. 27 DSGVO ist nicht erforderlich, da der Sitz innerhalb der Europäischen Union liegt. Datenschutz-Anfragen aus Deutschland
+      werden direkt am Sitz in Paris bearbeitet — Antworten erfolgen auf Deutsch oder Französisch.
+    </p>
+
+    <h2 id="allgemein" data-i18n="datenschutz.h2.2">2. Allgemeine Hinweise</h2>
+    <p>Diese Datenschutzerklärung informiert Sie über Art, Umfang und Zweck der Verarbeitung personenbezogener Daten innerhalb unseres Online-Angebots und der mit ihm verbundenen Webseiten und Funktionen. Wir verarbeiten Ihre Daten ausschließlich auf Grundlage der gesetzlichen Bestimmungen (DSGVO, BDSG, TTDSG).</p>
+    <p>Unsere Website verwendet eine SSL-Verschlüsselung (HTTPS), um die Übertragung Ihrer Daten gegen unbefugten Zugriff zu schützen.</p>
+
+    <h2 id="serverlog" data-i18n="datenschutz.h2.3">3. Server-Log-Dateien</h2>
+    <p>Beim Aufruf unserer Website werden automatisch Informationen erfasst, die Ihr Browser an unseren Server übermittelt. Dies sind:</p>
+    <ul>
+      <li>Browsertyp und Browserversion</li>
+      <li>Verwendetes Betriebssystem</li>
+      <li>Referrer-URL</li>
+      <li>Hostname des zugreifenden Rechners</li>
+      <li>Uhrzeit der Serveranfrage</li>
+      <li>IP-Adresse (gekürzt zur Anonymisierung)</li>
+    </ul>
+    <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer technisch fehlerfreien Darstellung und der Optimierung unserer Website).<br>
+    <strong>Speicherdauer:</strong> Maximal 30 Tage, danach automatische Löschung. Eine Zusammenführung dieser Daten mit anderen Datenquellen wird nicht vorgenommen.</p>
+
+    <h2 id="formular" data-i18n="datenschutz.h2.4">4. Kontakt- und Anfrageformulare</h2>
+    <p>Wenn Sie uns über das Anfrageformular auf <a href="/interesse">/interesse</a> oder den Repowering-Check auf <a href="/check">/check</a> Daten zukommen lassen, werden Ihre Angaben (Name, Kontaktdaten, Anlagendaten, Nachricht) zwecks Bearbeitung der Anfrage und für den Fall von Anschlussfragen bei uns gespeichert.</p>
+    <p><strong>Verarbeitete Daten:</strong></p>
+    <ul>
+      <li>Vor- und Nachname</li>
+      <li>E-Mail-Adresse</li>
+      <li>Telefonnummer</li>
+      <li>Firma (sofern angegeben)</li>
+      <li>Adresse der PV-Anlage (PLZ, Ort, Straße)</li>
+      <li>Anlagendaten (Inbetriebnahme, Leistung, MaStR-Nummer)</li>
+      <li>Inhalt Ihrer Nachricht</li>
+    </ul>
+    <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (vorvertragliche Maßnahmen auf Anfrage der betroffenen Person) bzw. Art. 6 Abs. 1 lit. f DSGVO (unser berechtigtes Interesse an der Beantwortung Ihrer Anfrage).<br>
+    <strong>Speicherdauer:</strong> Bis zur vollständigen Bearbeitung Ihrer Anfrage und Ablauf gesetzlicher Aufbewahrungsfristen (i. d. R. 6–10 Jahre nach HGB/AO bei Geschäftsbeziehung). Sie können jederzeit die Löschung verlangen — siehe Punkt 9.</p>
+
+    <h2 id="zoho" data-i18n="datenschutz.h2.5">5. Zoho Forms (Drittanbieter)</h2>
+    <p>Ergänzend zur Speicherung Ihrer Anfrage in unserem eigenen System leiten wir die im Repowering-Check angegebenen Daten an unseren Auftragsverarbeiter <strong>Zoho Corporation B.V., Hoogoorddreef 15, 1101 BA Amsterdam, Niederlande</strong> weiter, der unser Backoffice-System für die Bearbeitung von Anfragen bereitstellt. Zoho verarbeitet die Daten in Rechenzentren in der Europäischen Union.</p>
+    <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO sowie Art. 28 DSGVO (Auftragsverarbeitungsvertrag mit Zoho).<br>
+    <strong>Mehr Informationen:</strong> <a href="https://www.zoho.com/privacy.html" target="_blank" rel="noopener">Datenschutzerklärung von Zoho</a>.</p>
+
+    <h2 id="cookies" data-i18n="datenschutz.h2.6">6. Cookies &amp; Sessions</h2>
+    <p>Unsere Website verwendet technisch notwendige Cookies, die für den Betrieb der Website erforderlich sind. Diese Cookies enthalten ausschließlich Session-Identifikatoren und dienen der sicheren Anmeldung und der Aufrechterhaltung einer Anwendungssitzung. Es findet kein Tracking statt.</p>
+    <p><strong>Rechtsgrundlage:</strong> § 25 Abs. 2 Nr. 2 TTDSG (technisch notwendige Cookies).</p>
+
+    <h2 id="email" data-i18n="datenschutz.h2.7">7. E-Mail-Kontakt</h2>
+    <p>Bei Kontaktaufnahme per E-Mail werden die mitgeteilten Daten (E-Mail-Adresse, ggf. Name und Telefonnummer) ausschließlich für die Bearbeitung Ihrer Anfrage gespeichert. Eine Weitergabe an Dritte erfolgt nicht.</p>
+
+    <h2 id="tracking" data-i18n="datenschutz.h2.8">8. Tracking-Pixel in unseren E-Mails</h2>
+    <p>Unsere Akquise- und Geschäfts-E-Mails enthalten ggf. einen <strong>einzelnen Tracking-Pixel</strong> (1×1-Bild), der erkennen lässt, ob die E-Mail geöffnet wurde. Damit messen wir die Öffnungsrate unserer Geschäftskorrespondenz. Es werden hierbei nur Öffnung und Zeitpunkt erfasst — keine Standorte, Geräte oder personenbezogene Profile.</p>
+    <p><strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an der Optimierung unserer Kommunikation). Sie können der Verarbeitung jederzeit widersprechen (siehe Punkt 9) — wir entfernen Sie dann aus unserer Korrespondenz oder versenden ohne Tracking.</p>
+
+    <h2 id="rechte" data-i18n="datenschutz.h2.9">9. Ihre Rechte</h2>
+    <p>Sie haben jederzeit das Recht:</p>
+    <ul>
+      <li><strong>Auskunft</strong> über die zu Ihrer Person gespeicherten Daten zu erhalten (Art. 15 DSGVO),</li>
+      <li><strong>Berichtigung</strong> unrichtiger Daten zu verlangen (Art. 16 DSGVO),</li>
+      <li><strong>Löschung</strong> Ihrer Daten zu verlangen (Art. 17 DSGVO — „Recht auf Vergessenwerden"),</li>
+      <li><strong>Einschränkung der Verarbeitung</strong> zu verlangen (Art. 18 DSGVO),</li>
+      <li><strong>Datenübertragbarkeit</strong> zu verlangen (Art. 20 DSGVO),</li>
+      <li><strong>Widerspruch</strong> gegen die Verarbeitung einzulegen (Art. 21 DSGVO),</li>
+      <li>Eine erteilte Einwilligung jederzeit zu <strong>widerrufen</strong> (Art. 7 Abs. 3 DSGVO).</li>
+    </ul>
+    <p>Bitte richten Sie Ihr Anliegen formlos an: <a href="mailto:{{firma_email}}">{{firma_email}}</a>. Wir werden Ihrem Anliegen innerhalb der gesetzlichen Frist von 30 Tagen nachkommen.</p>
+
+    <h2 id="beschwerde" data-i18n="datenschutz.h2.10">10. Beschwerderecht bei der Aufsichtsbehörde</h2>
+    <p>Sie haben das Recht, sich bei einer Datenschutz-Aufsichtsbehörde zu beschweren, wenn Sie der Auffassung sind, dass die Verarbeitung Ihrer personenbezogenen Daten gegen die DSGVO verstößt. Eine Liste der zuständigen Aufsichtsbehörden in Deutschland finden Sie unter <a href="https://www.bfdi.bund.de/" target="_blank" rel="noopener">www.bfdi.bund.de</a>.</p>
+
+    <h2 id="aenderung" data-i18n="datenschutz.h2.11">11. Änderung dieser Datenschutzerklärung</h2>
+    <p>Wir behalten uns vor, diese Datenschutzerklärung anzupassen, damit sie stets den aktuellen rechtlichen Anforderungen entspricht oder um Änderungen unserer Leistungen umzusetzen. Für Ihren erneuten Besuch gilt dann die neue Datenschutzerklärung.</p>
+
+    <p class="text-xs text-gray-500 mt-12"><span data-i18n="legal.status_label">Stand:</span> <span id="datum"></span></p>
+  </main>
+
+  <footer class="bg-brand text-white py-10">
+    <div class="max-w-page mx-auto px-6 flex flex-col md:flex-row justify-between gap-4 items-center">
+      <div class="text-xs text-white/60">© <span id="year"></span> {{firma_name}} · <span data-i18n="footer.all_rights">Alle Rechte vorbehalten.</span></div>
+      <div class="text-xs text-white/60"><a href="/impressum" class="hover:text-accent" data-i18n="footer.legal_imprint">Impressum</a> · <a href="/datenschutz" class="hover:text-accent" data-i18n="footer.legal_privacy">Datenschutz</a> · <a href="/interesse" class="hover:text-accent" data-i18n="footer.legal_home">Startseite</a></div>
+    </div>
+  </footer>
+
+  <script src="/static/locales-vanilla.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    function setDatum() {
+      var loc = (window.__currentLocale && window.__currentLocale()) || 'de';
+      var locale = loc === 'en' ? 'en-US' : loc === 'fr' ? 'fr-FR' : 'de-DE';
+      document.getElementById('datum').textContent = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long' });
+    }
+    setDatum();
+    var origSetLocale = window.__setLocale;
+    window.__setLocale = function(l) { origSetLocale(l); setTimeout(setDatum, 50); };
+  </script>
+</body>
+</html>

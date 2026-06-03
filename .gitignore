@@ -15,3 +15,40 @@ mastr-scraper-agent.ts
 check-progress.ts
 scraper.log
 SCRAPING-FIX-SUMMARY.md
+# Lokales Klartext-Zugangswort fuer die API-Doku — niemals committen
+docs/API_ZUGANG.md
+docs/API_ZUGANG.en.md
+docs/API_ZUGANG.fr.md
+docs/API_ZUGANG.local.md
+docs/VIEWER_LOGIN.md
+SESSION_SUMMARY.md
+# Secrets / Daten — NIE committen
+.master.key
+data/
+uploads/
+*.db-shm
+*.db-wal
+mastr-test-fixture.db*
+mastr-solar-test.db*
+# Backups
+*.bak.*
+# Debug-Artefakte (Bilder, Test-Output, Inventories)
+*.png
+glitch.json
+tests/inventory*.json
+tests/translations-*.json
+tests/inv-*.json
+tests/check-missing-keys*.ts
+tests/test-anrede-locale.ts
+tests/test-dyn-err.ts
+tests/test-ip-whitelist.ts
+tests/test-migrations.ts
+tests/apply-*.ts
+tests/find-hardcoded-de.ts
+tests/inventory-de*.ts
+tests/full-audit.spec.ts
+# Generated (Codegen-Output)
+lib/api-client.ts
+tsconfig.genchk.json
+# Lokale Generator-Output für Postman/Insomnia
+docs/openapi.json

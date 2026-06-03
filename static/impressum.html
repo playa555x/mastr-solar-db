@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="impressum.page_title">Impressum — {{firma_name}}</title>
+  <meta name="robots" content="index,follow">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: {
+      colors: { brand: '#232F84', accent: '#FDB913', ink: '#0a0a0a', soft: '#F0F9F9' },
+      fontFamily: { sans: ['Roboto','system-ui','sans-serif'] },
+      maxWidth: { 'page': '1280px' },
+    } } }
+  </script>
+  <style>
+    html, body { font-family: 'Roboto', system-ui, sans-serif; background: #ffffff; color: #0a0a0a; }
+    .hero-bg { background: linear-gradient(180deg, rgba(35,47,132,0.92) 0%, rgba(35,47,132,0.75) 100%), url('https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1800&q=80&auto=format') center/cover; }
+    .btn-yellow { background: #FDB913; color: #232F84; font-weight: 700; transition: all .15s; }
+    .btn-yellow:hover { background: #ffc83a; }
+    .lang-switch { display: inline-flex; gap: 4px; }
+    .lang-switch button { padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; cursor: pointer; border: none; }
+    .lang-switch button.active { background: #FDB913; color: #232F84; }
+    .legal-section h2 { font-size: 22px; font-weight: 700; color: #232F84; margin-top: 32px; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 2px solid #FDB913; display: inline-block; }
+    .legal-section h3 { font-size: 16px; font-weight: 700; color: #232F84; margin-top: 24px; margin-bottom: 8px; }
+    .legal-section p { color: #444; line-height: 1.7; font-size: 15px; margin-bottom: 12px; }
+    .legal-section dt { font-weight: 700; color: #232F84; font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin-top: 12px; }
+    .legal-section dd { color: #1f2937; font-size: 15px; padding-left: 4px; }
+    .legal-section dd.unset { color: #991b1b; background: #fee2e2; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; display: inline-block; }
+    .legal-section a { color: #232F84; text-decoration: underline; }
+    .legal-section a:hover { color: #1a2466; }
+    .legal-section ul { list-style: disc; padding-left: 24px; color: #444; line-height: 1.7; font-size: 15px; margin-bottom: 12px; }
+    @media (max-width: 767px) {
+      h1 { font-size: 28px !important; }
+      header.hero-bg { min-height: 220px !important; }
+      .legal-section h2 { font-size: 20px; }
+    }
+  </style>
+</head>
+<body class="font-sans antialiased">
+
+  <nav class="absolute top-0 inset-x-0 z-50">
+    <div class="max-w-page mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="/interesse" class="flex items-center gap-3 text-white">
+        <img src="/static/feedgy-logo-white.svg" alt="Feedgy" style="height:30px;width:auto;">
+        <span class="text-white/50">/</span>
+        <span class="text-xl font-bold tracking-tight">{{firma_name}}</span>
+      </a>
+      <div class="flex items-center gap-3">
+        <div class="lang-switch">
+          <button data-i18n-switch="de" onclick="window.__setLocale('de')">DE</button>
+          <button data-i18n-switch="en" onclick="window.__setLocale('en')">EN</button>
+          <button data-i18n-switch="fr" onclick="window.__setLocale('fr')">FR</button>
+        </div>
+        <a href="/interesse" class="btn-yellow px-5 py-2.5 rounded text-sm" data-i18n="nav.to_homepage">Zur Startseite</a>
+      </div>
+    </div>
+  </nav>
+
+  <header class="hero-bg relative min-h-[280px] flex items-center pt-20">
+    <div class="max-w-page mx-auto px-6 py-12 w-full">
+      <h1 class="text-3xl md:text-5xl font-bold text-white leading-tight" data-i18n="impressum.h1">Impressum</h1>
+      <p class="text-white/85 mt-3 font-light" data-i18n="impressum.subtitle">Anbieterinformationen gem. § 5 TMG</p>
+    </div>
+  </header>
+
+  <main class="max-w-3xl mx-auto px-6 py-14 legal-section">
+
+    <div data-i18n-show-non-de style="background:#FFF7E6;border-left:3px solid #FDB913;padding:14px 18px;border-radius:0 6px 6px 0;margin:0 0 22px 0;">
+      <p style="margin:0;color:#444;font-size:14px;line-height:1.55;" data-i18n="legal.binding_note">Die deutsche Fassung dieses Impressums ist rechtlich verbindlich. Die EN/FR-Übersetzung dient ausschließlich der Information.</p>
+    </div>
+
+    <h2 data-i18n="impressum.section.provider">Diensteanbieter</h2>
+    <div style="background:#F0F9F9;border-left:3px solid #232F84;padding:14px 18px;border-radius:0 6px 6px 0;margin:14px 0 18px 0;">
+      <p style="margin:0;color:#1f2937;font-size:14.5px;line-height:1.6;">
+        <strong style="color:#232F84;" data-i18n="impressum.note_label">Hinweis:</strong>
+        <span data-i18n="impressum.provider_text">Anbieter dieses Dienstes ist die {{firma_name}} mit Sitz in Frankreich. Eine Niederlassung in Deutschland besteht nicht — Anfragen aus Deutschland werden direkt am Sitz in Paris bearbeitet. Geschäftssprachen sind Deutsch und Französisch. Es gilt französisches Gesellschaftsrecht, für Vertragsbeziehungen mit Verbrauchern in Deutschland gelten die zwingenden deutschen Verbraucherschutzvorschriften.</span>
+      </p>
+    </div>
+    <dl class="grid sm:grid-cols-2 gap-y-2 gap-x-6">
+      <dt data-i18n="impressum.field.company">Firma</dt><dd>{{firma_name}}</dd>
+      <dt data-i18n="impressum.field.address">Anschrift (Sitz)</dt><dd>{{firma_adresse}}</dd>
+      <dt data-i18n="impressum.field.representative">Vertretungsberechtigt</dt><dd>{{firma_vertreter}}</dd>
+      <dt data-i18n="impressum.field.register">Registereintrag</dt><dd>{{firma_register}}</dd>
+      <dt data-i18n="impressum.field.vat_id">USt-IdNr. (intra-EU)</dt><dd>{{firma_ust_id}}</dd>
+    </dl>
+
+    <h2 data-i18n="impressum.section.contact">Kontakt</h2>
+    <dl class="grid sm:grid-cols-2 gap-y-2 gap-x-6">
+      <dt data-i18n="impressum.field.phone">Telefon</dt><dd>{{firma_telefon}}</dd>
+      <dt data-i18n="impressum.field.email">E-Mail</dt><dd><a href="mailto:{{firma_email}}">{{firma_email}}</a></dd>
+      <dt data-i18n="impressum.field.web">Internet</dt><dd><a href="{{firma_url}}">{{firma_url}}</a></dd>
+    </dl>
+
+    <h2 data-i18n="impressum.section.responsible">Verantwortlich für den Inhalt</h2>
+    <p data-i18n="impressum.responsible_text">Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV: {{firma_verantwortlich}}, Anschrift wie oben.</p>
+
+    <h2 data-i18n="impressum.section.eu_dispute">EU-Streitschlichtung</h2>
+    <p><span data-i18n="impressum.eu_dispute_text">Die Europäische Kommission stellt eine Plattform zur Online-Streitbeilegung (OS) bereit:</span> <a href="https://ec.europa.eu/consumers/odr/" target="_blank" rel="noopener">https://ec.europa.eu/consumers/odr/</a>. <span data-i18n="impressum.eu_email_note">Unsere E-Mail-Adresse finden Sie oben.</span></p>
+
+    <h2 data-i18n="impressum.section.consumer_dispute">Verbraucherstreitbeilegung</h2>
+    <p data-i18n="impressum.consumer_dispute_text">Wir sind nicht bereit oder verpflichtet, an Streitbeilegungsverfahren vor einer Verbraucherschlichtungsstelle teilzunehmen.</p>
+
+    <h2 data-i18n="impressum.section.liability_content">Haftung für Inhalte</h2>
+    <p data-i18n="impressum.liability_content_text">Als Diensteanbieter sind wir gemäß § 7 Abs. 1 TMG für eigene Inhalte auf diesen Seiten nach den allgemeinen Gesetzen verantwortlich. Nach §§ 8 bis 10 TMG sind wir als Diensteanbieter jedoch nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen oder nach Umständen zu forschen, die auf eine rechtswidrige Tätigkeit hinweisen. Verpflichtungen zur Entfernung oder Sperrung der Nutzung von Informationen nach den allgemeinen Gesetzen bleiben hiervon unberührt. Eine diesbezügliche Haftung ist jedoch erst ab dem Zeitpunkt der Kenntnis einer konkreten Rechtsverletzung möglich. Bei Bekanntwerden von entsprechenden Rechtsverletzungen werden wir diese Inhalte umgehend entfernen.</p>
+
+    <h2 data-i18n="impressum.section.liability_links">Haftung für Links</h2>
+    <p data-i18n="impressum.liability_links_text">Unser Angebot enthält Links zu externen Websites Dritter, auf deren Inhalte wir keinen Einfluss haben. Deshalb können wir für diese fremden Inhalte auch keine Gewähr übernehmen. Für die Inhalte der verlinkten Seiten ist stets der jeweilige Anbieter oder Betreiber der Seiten verantwortlich. Die verlinkten Seiten wurden zum Zeitpunkt der Verlinkung auf mögliche Rechtsverstöße überprüft. Rechtswidrige Inhalte waren zum Zeitpunkt der Verlinkung nicht erkennbar.</p>
+
+    <h2 data-i18n="impressum.section.copyright">Urheberrecht</h2>
+    <p data-i18n="impressum.copyright_text">Die durch die Seitenbetreiber erstellten Inhalte und Werke auf diesen Seiten unterliegen dem deutschen Urheberrecht. Die Vervielfältigung, Bearbeitung, Verbreitung und jede Art der Verwertung außerhalb der Grenzen des Urheberrechtes bedürfen der schriftlichen Zustimmung des jeweiligen Autors bzw. Erstellers. Downloads und Kopien dieser Seite sind nur für den privaten, nicht kommerziellen Gebrauch gestattet.</p>
+
+    <p class="text-xs text-gray-500 mt-12"><span data-i18n="legal.status_label">Stand:</span> <span id="datum"></span></p>
+  </main>
+
+  <footer class="bg-brand text-white py-10">
+    <div class="max-w-page mx-auto px-6 flex flex-col md:flex-row justify-between gap-4 items-center">
+      <div class="text-xs text-white/60">© <span id="year"></span> {{firma_name}} · <span data-i18n="footer.all_rights">Alle Rechte vorbehalten.</span></div>
+      <div class="text-xs text-white/60"><a href="/impressum" class="hover:text-accent" data-i18n="footer.legal_imprint">Impressum</a> · <a href="/datenschutz" class="hover:text-accent" data-i18n="footer.legal_privacy">Datenschutz</a> · <a href="/interesse" class="hover:text-accent" data-i18n="footer.legal_home">Startseite</a></div>
+    </div>
+  </footer>
+
+  <script src="/static/locales-vanilla.js"></script>
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    function setDatum() {
+      var loc = (window.__currentLocale && window.__currentLocale()) || 'de';
+      var locale = loc === 'en' ? 'en-US' : loc === 'fr' ? 'fr-FR' : 'de-DE';
+      document.getElementById('datum').textContent = new Date().toLocaleDateString(locale, { year: 'numeric', month: 'long' });
+    }
+    setDatum();
+    // Re-update Datum nach Locale-Switch
+    var origSetLocale = window.__setLocale;
+    window.__setLocale = function(l) { origSetLocale(l); setTimeout(setDatum, 50); };
+  </script>
+</body>
+</html>

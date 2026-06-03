@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="check.page_title"><span data-i18n="check.page_title">Ist Ihre Anlage für Repowering geeignet? — Repowering DE</span></title>
+  <meta name="description" content="In 3 Minuten prüfen ob Ihre PV-Anlage für Repowering geeignet ist. Datenbasierte Analyse — kostenlos und unverbindlich.">
+  <meta name="robots" content="index,follow">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: { DEFAULT: '#232F84', dark: '#1a2466', light: '#3a4ab0' },
+            accent: { DEFAULT: '#FDB913', dark: '#e0a30b' },
+            ink: { DEFAULT: '#0a0a0a', soft: '#555', muted: '#999' },
+            soft: { DEFAULT: '#F0F9F9', cyan: '#88D1D1' },
+          },
+          fontFamily: { sans: ['Roboto','system-ui','sans-serif'] },
+          maxWidth: { 'page': '1280px' },
+        }
+      }
+    }
+  </script>
+  <style>
+    html, body { font-family: 'Roboto', system-ui, sans-serif; background: #ffffff; color: #0a0a0a; }
+    [x-cloak] { display: none !important; }
+    .hero-bg {
+      background:
+        linear-gradient(180deg, rgba(35,47,132,0.85) 0%, rgba(35,47,132,0.6) 60%, rgba(35,47,132,0.9) 100%),
+        url('https://images.unsplash.com/photo-1509391366360-2e959784a276?w=1800&q=80&auto=format') center/cover;
+    }
+    .btn-yellow { background: #FDB913; color: #232F84; font-weight: 700; transition: all .15s; }
+    .btn-yellow:hover { background: #ffc83a; transform: translateY(-1px); }
+    .btn-yellow:disabled { opacity: .55; cursor: not-allowed; transform: none; }
+    .lang-switch { display: inline-flex; gap: 4px; }
+    .lang-switch button { padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); font-size: 11px; font-weight: 600; cursor: pointer; border: none; }
+    .lang-switch button.active { background: #FDB913; color: #232F84; }
+    .btn-blue { background: #232F84; color: white; font-weight: 700; transition: all .15s; }
+    .btn-blue:hover { background: #1a2466; }
+    .btn-ghost-blue { color: #232F84; font-weight: 600; transition: all .15s; }
+    .btn-ghost-blue:hover { color: #1a2466; }
+    .yellow-underline { background-image: linear-gradient(180deg, transparent 65%, #FDB913 65%, #FDB913 95%, transparent 95%); padding: 0 2px; }
+    /* Form-Styling — Feedgy-clean */
+    .field-label { display: block; font-size: 12px; font-weight: 700; color: #232F84; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 6px; }
+    .field-label .req { color: #dc2626; margin-left: 2px; }
+    .field-input, .field-textarea, .field-select {
+      background: white; border: 1.5px solid #d1d5db; color: #0a0a0a; font-family: 'Roboto', sans-serif;
+      transition: border-color .15s, box-shadow .15s; padding: 0.7rem 0.9rem; border-radius: 6px; width: 100%; font-size: 14.5px;
+    }
+    .field-input:focus, .field-textarea:focus, .field-select:focus {
+      outline: none; border-color: #232F84; box-shadow: 0 0 0 3px rgba(35,47,132,0.12);
+    }
+    .field-error { color: #dc2626; font-size: 12px; margin-top: 4px; }
+    .field-hint { color: #6b7280; font-size: 11.5px; margin-top: 4px; }
+    .check-box { background: white; border: 1.5px solid #d1d5db; border-radius: 6px; padding: 14px 16px; cursor: pointer; transition: all .15s; display: flex; gap: 10px; align-items: flex-start; }
+    .check-box:hover { border-color: #232F84; background: #F0F9F9; }
+    .step-pill { display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; }
+    .step-pill-active { background: #FDB913; color: #232F84; }
+    .step-pill-done   { background: #232F84; color: #FDB913; }
+    .step-pill-todo   { background: #e5e7eb; color: #6b7280; }
+    .step-line { height: 2px; background: #e5e7eb; flex: 1; margin: 0 8px; min-width: 20px; }
+    .step-line-done { background: #232F84; }
+    .hp-field { position: absolute; left: -9999px; opacity: 0; pointer-events: none; }
+    .feature-tile { background: white; border: 1px solid #e5e7eb; border-radius: 12px; padding: 22px 20px; transition: all .15s; }
+    .feature-tile:hover { border-color: #FDB913; transform: translateY(-2px); box-shadow: 0 8px 24px rgba(35,47,132,0.08); }
+    .feature-tile-icon { width: 44px; height: 44px; background: #FDB913; color: #232F84; border-radius: 10px; display: grid; place-items: center; font-size: 22px; font-weight: 900; margin-bottom: 14px; }
+    /* MOBILE-Optimierung */
+    @media (max-width: 767px) {
+      h1 { font-size: 28px !important; line-height: 1.15 !important; }
+      header.hero-bg { min-height: 320px !important; }
+      header.hero-bg .py-16 { padding: 60px 0 32px !important; }
+      nav .h-20 { height: 56px; }
+      nav img { height: 22px !important; }
+      .step-pill { font-size: 10px; padding: 4px 8px !important; gap: 4px !important; }
+      .step-pill span:last-child { display: none; }  /* nur Zahl auf Mobile */
+      .field-input, .field-textarea, .field-select { font-size: 16px !important; }  /* iOS-Auto-Zoom verhindern */
+      .feature-tile { padding: 16px 14px !important; }
+      .feature-tile-icon { width: 36px; height: 36px; font-size: 18px; margin-bottom: 10px; }
+      footer .grid { gap: 24px !important; }
+    }
+  </style>
+</head>
+<body class="font-sans antialiased" x-data="checkForm()" x-cloak>
+
+  <!-- ============ NAV ============ -->
+  <nav class="absolute top-0 inset-x-0 z-50">
+    <div class="max-w-page mx-auto px-6 h-20 flex items-center justify-between">
+      <a href="/interesse" class="flex items-center gap-3 text-white">
+        <img src="/static/feedgy-logo-white.svg" alt="Feedgy" style="height:30px;width:auto;">
+        <span class="text-white/50">/</span>
+        <span class="text-xl font-bold tracking-tight">Repowering DE</span>
+      </a>
+      <div class="hidden md:flex gap-8 text-sm font-medium text-white">
+        <a href="/interesse#leistungen" class="hover:text-accent transition" data-i18n="check.nav.services">Leistungen</a>
+        <a href="/interesse#zahlen" class="hover:text-accent transition" data-i18n="check.nav.numbers">Zahlen</a>
+        <a href="/interesse#betreiber" class="hover:text-accent transition" data-i18n="check.nav.operator">Anlagenbetreiber</a>
+        <a href="/interesse#partner" class="hover:text-accent transition" data-i18n="check.nav.partner">Partner</a>
+      </div>
+      <div class="flex items-center gap-3">
+        <div class="lang-switch">
+          <button data-i18n-switch="de" onclick="window.__setLocale('de')">DE</button>
+          <button data-i18n-switch="en" onclick="window.__setLocale('en')">EN</button>
+          <button data-i18n-switch="fr" onclick="window.__setLocale('fr')">FR</button>
+        </div>
+        <a href="/interesse" class="btn-yellow px-5 py-2.5 rounded text-sm" data-i18n="nav.to_homepage">Zur Startseite</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero-bg relative min-h-[420px] flex items-center pt-20">
+    <div class="max-w-page mx-auto px-6 py-16 w-full">
+      <div class="max-w-3xl">
+        <div class="inline-block px-3 py-1 mb-6 text-xs font-bold uppercase tracking-widest rounded bg-accent text-brand" data-i18n="check.hero.badge"><span data-i18n="check.hero.badge">
+          Kostenlose Anlagen-Prüfung
+        </span></div>
+        <h1 class="text-4xl md:text-5xl font-bold text-white leading-tight mb-6" data-i18n="check.hero.h1"><span data-i18n="check.hero.h1">
+          Ist Ihre Anlage für Repowering geeignet?
+        </span></h1>
+        <p class="text-lg md:text-xl text-white/90 leading-relaxed mb-2 font-light max-w-2xl" data-i18n="check.hero.subtitle"><span data-i18n="check.hero.subtitle">
+          In 3 Minuten beantworten Sie ein paar kurze Fragen — wir prüfen kostenlos ob sich eine Modernisierung Ihrer PV-Anlage lohnt.
+        </span></p>
+        <p class="text-sm md:text-base text-white/75 font-light"><span data-i18n="check.hero.no_obligation">
+          Keine Verpflichtung. Keine Daten an Dritte. Persönliche Antwort innerhalb von 10 Werktagen.
+        </span></p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============ FEATURES STRIP ============ -->
+  <section class="bg-white py-10 border-b border-gray-100">
+    <div class="max-w-page mx-auto px-6">
+      <div class="grid md:grid-cols-3 gap-5">
+        <div class="feature-tile">
+          <div class="feature-tile-icon">⏱</div>
+          <div class="font-bold text-ink mb-1"><span data-i18n="check.feature.3min">3 Minuten</span></div>
+          <div class="text-sm text-ink-soft leading-snug"><span data-i18n="check.feature.3min_desc">Schnell ausgefüllt — keine technischen Details nötig.</span></div>
+        </div>
+        <div class="feature-tile">
+          <div class="feature-tile-icon">⚡</div>
+          <div class="font-bold text-ink mb-1">Bis +118 % Ertrag</div>
+          <div class="text-sm text-ink-soft leading-snug"><span data-i18n="check.feature.modern_desc">Moderne Module liefern auf gleicher Dachfläche oft das Doppelte.</span></div>
+        </div>
+        <div class="feature-tile">
+          <div class="feature-tile-icon">✉</div>
+          <div class="font-bold text-ink mb-1" data-i18n="check.feature.reply_10d">Antwort &lt; 10 Werktage</div>
+          <div class="text-sm text-ink-soft leading-snug"><span data-i18n="check.feature.reply_desc">Ein Spezialist meldet sich mit Ihrer persönlichen Einschätzung.</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FORM ============ -->
+  <section id="formular" class="bg-soft py-16">
+    <div class="max-w-page mx-auto px-6">
+      <div class="max-w-3xl mx-auto">
+
+        <!-- SUCCESS-State -->
+        <div x-show="state === 'success'" class="bg-white border border-emerald-200 rounded-2xl p-10 text-center shadow-lg">
+          <div class="w-16 h-16 bg-emerald-100 rounded-full grid place-items-center mx-auto mb-5 text-emerald-600 text-3xl">✓</div>
+          <h2 class="text-2xl font-bold text-brand mb-3">Vielen Dank!</h2>
+          <p class="text-ink-soft mb-1">Ihre Anfrage <strong x-text="ticket"></strong> ist bei uns angekommen.</p>
+          <p class="text-ink-soft mb-6"><span data-i18n="check.success.text">Ein Repowering-Spezialist meldet sich innerhalb von 10 Werktagen persönlich bei Ihnen zurück.</span></p>
+          <div class="flex flex-wrap gap-3 justify-center">
+            <a href="/interesse" class="btn-blue px-6 py-2.5 rounded text-sm">Zur Startseite</a>
+            <button @click="resetForm()" type="button" class="btn-ghost-blue px-6 py-2.5 rounded text-sm"><span data-i18n="check.success.reset">Weiteres Formular ausfüllen</span></button>
+          </div>
+        </div>
+
+        <!-- FORM -->
+        <div x-show="state !== 'success'" class="bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden">
+
+          <!-- Header mit Progress -->
+          <div class="bg-brand px-6 sm:px-10 py-6 text-white">
+            <div class="flex items-center gap-2 mb-3">
+              <span class="text-xs font-bold uppercase tracking-widest text-accent">Repowering-Check</span>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold leading-tight mb-2">Daten Ihrer Anlage</h2>
+            <p class="text-sm text-white/75"><span data-i18n="check.form.intro">Wir benötigen ein paar Eckdaten um eine fundierte erste Einschätzung geben zu können.</span></p>
+            <!-- Progress -->
+            <div class="flex items-center mt-5">
+              <span class="step-pill" :class="step >= 1 ? (step > 1 ? 'step-pill-done' : 'step-pill-active') : 'step-pill-todo'">
+                <span>1</span><span>Kontakt</span>
+              </span>
+              <span class="step-line" :class="step > 1 ? 'step-line-done' : ''"></span>
+              <span class="step-pill" :class="step === 2 ? 'step-pill-active' : (step > 2 ? 'step-pill-done' : 'step-pill-todo')">
+                <span>2</span><span>Anlage</span>
+              </span>
+              <span class="step-line" :class="step > 2 ? 'step-line-done' : ''"></span>
+              <span class="step-pill" :class="step === 3 ? 'step-pill-active' : 'step-pill-todo'">
+                <span>3</span><span>Absenden</span>
+              </span>
+            </div>
+          </div>
+
+          <form @submit.prevent="submit()" class="px-6 sm:px-10 py-8 space-y-6">
+
+            <!-- Prefill-Banner: zeigt dass Daten aus dem System vor-eingetragen sind -->
+            <div x-show="prefillNote" class="bg-soft border border-soft-cyan/50 rounded-lg p-4 flex items-start gap-3">
+              <span class="text-2xl">✨</span>
+              <div class="flex-1">
+                <div class="font-bold text-brand text-sm mb-0.5"><span data-i18n="check.prefill.banner">Daten wurden für Sie vor-ausgefüllt</span></div>
+                <div class="text-xs text-ink-soft"><span data-i18n="check.prefill.for">Wir haben für </span><strong x-text="prefillNote"></strong> die uns bekannten Daten bereits eingetragen. Bitte prüfen und ergänzen Sie wo nötig.</div>
+              </div>
+            </div>
+
+            <!-- Honeypot -->
+            <input type="text" name="website_url" x-model="form.website_url" class="hp-field" tabindex="-1" autocomplete="off" aria-hidden="true">
+
+            <!-- STEP 1: Kontaktdaten -->
+            <div x-show="step === 1" class="space-y-5">
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="field-label"><span data-i18n="check.field.firstname">Vorname</span><span class="req">*</span></label>
+                  <input type="text" x-model="form.vorname" required class="field-input" placeholder="Max">
+                </div>
+                <div>
+                  <label class="field-label"><span data-i18n="check.field.lastname">Nachname</span><span class="req">*</span></label>
+                  <input type="text" x-model="form.nachname" required class="field-input" placeholder="Mustermann">
+                </div>
+              </div>
+              <div>
+                <label class="field-label"><span data-i18n="check.field.company_label">Firmenname (falls Anlage auf Firma läuft)</span></label>
+                <input type="text" x-model="form.firma" class="field-input" placeholder="z. B. Mustermann GmbH (optional)">
+              </div>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="field-label">E-Mail<span class="req">*</span></label>
+                  <input type="email" x-model="form.email" required class="field-input" placeholder="max@beispiel.de">
+                </div>
+                <div>
+                  <label class="field-label"><span data-i18n="appset.firma_telefon.label">Telefon</span><span class="req">*</span></label>
+                  <input type="tel" x-model="form.telefon" required class="field-input" placeholder="+49 …">
+                </div>
+              </div>
+              <div class="pt-4 flex justify-between items-center">
+                <span class="text-xs text-ink-muted"><span data-i18n="check.field.gdpr_hint">Ihre Daten werden DSGVO-konform verarbeitet und nicht an Dritte weitergegeben.</span></span>
+                <button type="button" @click="next(1)" class="btn-blue px-7 py-3 rounded"><span data-i18n="btn.next_arrow">Weiter →</span></button>
+              </div>
+            </div>
+
+            <!-- STEP 2: Anlage -->
+            <div x-show="step === 2" class="space-y-5">
+              <div>
+                <label class="field-label"><span data-i18n="check.field.plant_address">Adresse der Anlage</span></label>
+                <input type="text" x-model="form.strasse" class="field-input" placeholder="Straße + Hausnummer (optional)" data-i18n-placeholder="check.field.street_optional">
+                <div class="field-hint"><span data-i18n="check.field.plant_address_hint">Falls die Anlage an einer anderen Adresse als der Anschrift steht.</span></div>
+              </div>
+              <div class="grid sm:grid-cols-3 gap-4">
+                <div>
+                  <label class="field-label">PLZ<span class="req">*</span></label>
+                  <input type="text" x-model="form.plz" required pattern="\d{4,5}" maxlength="5" class="field-input" placeholder="01234">
+                </div>
+                <div class="sm:col-span-2">
+                  <label class="field-label"><span data-i18n="check.field.city">Ort</span></label>
+                  <input type="text" x-model="form.ort" class="field-input" placeholder="Musterstadt">
+                </div>
+              </div>
+              <div class="grid sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="field-label">Inbetriebnahme</label>
+                  <input type="month" x-model="form.inbetriebnahme" class="field-input">
+                  <div class="field-hint">Wann ging die Anlage ans Netz?</div>
+                </div>
+                <div>
+                  <label class="field-label">Nennleistung (kWp)</label>
+                  <input type="number" x-model="form.kwp" min="1" max="100000" step="1" class="field-input" placeholder="z. B. 240">
+                </div>
+              </div>
+              <div>
+                <label class="field-label">MaStR-Nummer (falls bekannt)</label>
+                <input type="text" x-model="form.mastr_nummer" class="field-input" placeholder="SEE… / EEG…">
+                <div class="field-hint">Marktstammdatenregister-Nummer der Anlage — hilft uns die richtige Anlage zu finden.</div>
+              </div>
+              <div>
+                <label class="field-label">Anmerkungen</label>
+                <textarea x-model="form.nachricht" rows="3" class="field-textarea" placeholder="Optional: was möchten Sie wissen? Repowering, Verkauf, Speicher-Nachrüstung?" data-i18n-placeholder="check.field.interest_optional"></textarea>
+              </div>
+              <div class="pt-4 flex justify-between items-center">
+                <button type="button" @click="step = 1" class="btn-ghost-blue px-3 py-3"><span data-i18n="btn.back_arrow">← Zurück</span></button>
+                <button type="button" @click="next(2)" class="btn-blue px-7 py-3 rounded"><span data-i18n="btn.next_arrow">Weiter →</span></button>
+              </div>
+            </div>
+
+            <!-- STEP 3: Zusammenfassung + AGB + Absenden -->
+            <div x-show="step === 3" class="space-y-5">
+              <div class="bg-soft rounded-xl p-5 border border-soft-cyan/50">
+                <div class="text-sm font-bold text-brand mb-3 uppercase tracking-wider">Zusammenfassung</div>
+                <dl class="space-y-1.5 text-sm">
+                  <div class="flex justify-between gap-3"><dt class="text-ink-soft">Kontakt</dt><dd class="font-medium text-ink text-right" x-text="`${form.vorname} ${form.nachname}` + (form.firma ? ' · ' + form.firma : '')"></dd></div>
+                  <div class="flex justify-between gap-3"><dt class="text-ink-soft">E-Mail</dt><dd class="font-medium text-ink text-right" x-text="form.email"></dd></div>
+                  <div class="flex justify-between gap-3"><dt class="text-ink-soft"><span data-i18n="appset.firma_telefon.label">Telefon</span></dt><dd class="font-medium text-ink text-right" x-text="form.telefon"></dd></div>
+                  <div class="flex justify-between gap-3"><dt class="text-ink-soft"><span data-i18n="check.review.location">Standort</span></dt><dd class="font-medium text-ink text-right" x-text="[form.strasse, [form.plz, form.ort].filter(Boolean).join(' ')].filter(Boolean).join(', ')"></dd></div>
+                  <div class="flex justify-between gap-3" x-show="form.kwp || form.inbetriebnahme"><dt class="text-ink-soft">Anlage</dt><dd class="font-medium text-ink text-right" x-text="[form.kwp ? form.kwp + ' kWp' : '', form.inbetriebnahme || ''].filter(Boolean).join(' · ')"></dd></div>
+                  <div class="flex justify-between gap-3" x-show="form.mastr_nummer"><dt class="text-ink-soft">MaStR-Nr.</dt><dd class="font-mono text-ink text-right" x-text="form.mastr_nummer"></dd></div>
+                </dl>
+              </div>
+              <label class="check-box">
+                <input type="checkbox" x-model="form.agb" required class="mt-0.5 accent-brand">
+                <span class="text-sm leading-snug">
+                  <strong class="text-brand">Datenschutz &amp; AGB akzeptieren<span class="req">*</span></strong><br><span data-i18n="check.gdpr.consent">
+                  Ich willige ein, dass meine Angaben zur Bearbeitung meiner Anfrage gespeichert und für die Kontaktaufnahme genutzt werden. Es erfolgt keine Weitergabe an Dritte. </span><a href="/datenschutz" target="_blank" class="text-brand underline">Datenschutz</a> · <a href="/impressum" target="_blank" class="text-brand underline">Impressum</a>
+                </span>
+              </label>
+              <div x-show="error" class="bg-red-50 border border-red-200 text-red-700 text-sm rounded p-3" x-text="error"></div>
+              <div class="pt-2 flex justify-between items-center">
+                <button type="button" @click="step = 2" class="btn-ghost-blue px-3 py-3"><span data-i18n="btn.back_arrow">← Zurück</span></button>
+                <button type="submit" :disabled="state === 'sending' || !form.agb" class="btn-yellow px-8 py-3 rounded">
+                  <span x-show="state !== 'sending'">Absenden →</span>
+                  <span x-show="state === 'sending'">Wird gesendet…</span>
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+
+        <p class="text-center text-xs text-ink-muted mt-6"><span data-i18n="check.footer.crm_hint">
+          Diese Anfrage wird in unserem internen CRM gespeichert und parallel an unser Backoffice weitergeleitet.
+        </span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer id="kontakt" class="bg-brand text-white py-16">
+    <div class="max-w-page mx-auto px-6">
+      <div class="grid md:grid-cols-4 gap-10 mb-10">
+        <div class="md:col-span-2">
+          <div class="flex items-center gap-3 mb-4">
+            <img src="/static/feedgy-logo-white.svg" alt="Feedgy" style="height:30px;width:auto;">
+            <span class="text-white/50">/</span>
+            <span class="text-xl font-bold tracking-tight">Repowering DE</span>
+          </div>
+          <p class="text-sm text-white/70 max-w-md leading-relaxed font-light"><span data-i18n="check.footer.tagline">
+            Spezialisten für Repowering und Ankauf bestehender PV-Anlagen in Deutschland.
+            Datenbasierte Bewertung auf Grundlage des kompletten Marktstammdatenregisters.
+          </span></p>
+        </div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider mb-3 text-accent">Leistungen</div>
+          <ul class="space-y-2 text-sm text-white/80 font-light">
+            <li><a href="/interesse#leistungen" class="hover:text-accent">Repowering</a></li>
+            <li><a href="/interesse#leistungen" class="hover:text-accent"><span data-i18n="check.footer.plant_purchase">Anlagen-Ankauf</span></a></li>
+            <li><a href="/interesse#leistungen" class="hover:text-accent">PPA-Restbetrieb</a></li>
+            <li><a href="/check" class="hover:text-accent"><span data-i18n="check.footer.plant_check">Anlagen-Check</span></a></li>
+          </ul>
+        </div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider mb-3 text-accent">Kontakt</div>
+          <ul class="space-y-2 text-sm text-white/80 font-light">
+            <li><a href="/interesse#kontakt" class="hover:text-accent">Anfrage stellen</a></li>
+            <li><a href="/interesse" class="hover:text-accent">Zur Startseite</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="border-t border-white/15 pt-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div class="text-xs text-white/55 font-light">© <span id="year"></span> Repowering DE · <span data-i18n="footer.all_rights"><span data-i18n="footer.all_rights">Alle Rechte vorbehalten.</span></span></div>
+        <div class="text-xs text-white/55 font-light"><a href="/impressum" class="hover:text-accent" data-i18n="footer.legal_imprint">Impressum</a> · <a href="/datenschutz" class="hover:text-accent" data-i18n="footer.legal_privacy">Datenschutz</a></div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    function checkForm() {
+      return {
+        step: 1,
+        state: 'idle', // idle | sending | success | error
+        ticket: '',
+        error: '',
+        prefillNote: '',  // "Daten zu Ihrer Anlage XYZ wurden bereits eingetragen"
+        form: {
+          vorname: '', nachname: '', firma: '', email: '', telefon: '',
+          strasse: '', plz: '', ort: '',
+          inbetriebnahme: '', kwp: '', mastr_nummer: '',
+          nachricht: '', agb: false,
+          website_url: '',  // Honeypot
+        },
+        async init() {
+          // ?t=TOKEN → Prefill abrufen
+          const params = new URLSearchParams(window.location.search);
+          const t = params.get('t');
+          if (!t) return;
+          try {
+            const r = await fetch('/api/public/check-prefill?t=' + encodeURIComponent(t));
+            if (!r.ok) return;
+            const data = await r.json();
+            // Felder befuellen wenn leer; nicht ueberschreiben falls User schon getippt
+            for (const k of Object.keys(this.form)) {
+              if (k in data && (this.form[k] === '' || this.form[k] === false)) {
+                this.form[k] = data[k] != null ? String(data[k]) : '';
+              }
+            }
+            if (data.anlage_name) this.prefillNote = data.anlage_name;
+          } catch {}
+        },
+        next(fromStep) {
+          this.error = '';
+          if (fromStep === 1) {
+            if (!this.form.vorname.trim() || !this.form.nachname.trim()) { this.error = 'Bitte Vor- und Nachname angeben.'; return; }
+            if (!this.form.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) { this.error = 'Bitte gültige E-Mail-Adresse angeben.'; return; }
+            if (!this.form.telefon.trim() || this.form.telefon.trim().length < 5) { this.error = 'Bitte Telefonnummer angeben.'; return; }
+            this.step = 2;
+          } else if (fromStep === 2) {
+            if (!this.form.plz.trim() || !/^\d{4,5}$/.test(this.form.plz.trim())) { this.error = 'Bitte gültige PLZ angeben.'; return; }
+            this.step = 3;
+          }
+          window.scrollTo({ top: document.getElementById('formular').offsetTop - 20, behavior: 'smooth' });
+        },
+        async submit() {
+          if (!this.form.agb) { this.error = 'Bitte AGB & Datenschutz bestätigen.'; return; }
+          this.error = '';
+          this.state = 'sending';
+          try {
+            const r = await fetch('/api/public/check', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                vorname: this.form.vorname.trim(),
+                nachname: this.form.nachname.trim(),
+                name: (this.form.vorname.trim() + ' ' + this.form.nachname.trim()).trim(),
+                firma: this.form.firma.trim() || null,
+                email: this.form.email.trim(),
+                telefon: this.form.telefon.trim(),
+                strasse: this.form.strasse.trim() || null,
+                plz: this.form.plz.trim(),
+                ort: this.form.ort.trim() || null,
+                inbetriebnahme: this.form.inbetriebnahme || null,
+                anlagen_leistung_kwp: this.form.kwp ? parseFloat(this.form.kwp) : null,
+                mastr_nummer: this.form.mastr_nummer.trim() || null,
+                nachricht: this.form.nachricht.trim() || null,
+                website_url: this.form.website_url || '',  // Honeypot
+                agb_accepted: true,
+              }),
+            });
+            const data = await r.json().catch(() => ({}));
+            if (r.ok && data.success) {
+              this.ticket = data.ticket || 'OK';
+              this.state = 'success';
+              window.scrollTo({ top: document.getElementById('formular').offsetTop - 20, behavior: 'smooth' });
+            } else {
+              this.error = data.error || 'Es ist ein Fehler aufgetreten. Bitte später erneut versuchen.';
+              this.state = 'idle';
+            }
+          } catch (e) {
+            this.error = 'Netzwerkfehler. Bitte später erneut versuchen.';
+            this.state = 'idle';
+          }
+        },
+        resetForm() {
+          this.state = 'idle';
+          this.step = 1;
+          this.ticket = '';
+          this.error = '';
+          Object.keys(this.form).forEach(k => this.form[k] = (k === 'agb' ? false : ''));
+        },
+      };
+    }
+  </script>
+  <script src="/static/locales-vanilla.js"></script>
+</body>
+</html>
